@@ -68,10 +68,15 @@ public:
 				thread_controller.program_done.store(true);
 				break;
 			}
-			
-			send(server_connector.getSock(), message_to_send.c_str(), message_to_send.length(), 0);
-			std::lock_guard<std::mutex> lock(thread_controller.cout_mutex);
-	        std::cout << "me : " << message_to_send << std::endl;
+			else{
+				if (send(server_connector.getSock(), message_to_send.c_str(), message_to_send.length(), 0) < 0){
+					throw std::system_error(WSAGetLastError(), std::system_category(), "send failed");
+				}
+				else{
+					std::lock_guard<std::mutex> lock(thread_controller.cout_mutex);
+			        std::cout << "me : " << message_to_send << std::endl;
+				}
+			}
 		}
 	}
 	
@@ -89,6 +94,7 @@ public:
 	server_connector(server_connector),
 	thread_controller(thread_controller),
 	buffer(BUFFER_SIZE){}
+	
 	void watchServer(){
 		while (!thread_controller.program_done.load()){
 			int bytes_read = recv(server_connector.getSock(), buffer.data(), BUFFER_SIZE - 1, 0);

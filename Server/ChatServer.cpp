@@ -136,10 +136,10 @@ public:
         client_map.erase(client_socket_fd);
     }
 
-    void broadCastMsg(int sender_fd, std::string message, int length){
+    void broadCastMsg(int sender_fd, std::string message){
         for (auto iter = client_map.begin(); iter != client_map.end(); iter++){
             if (iter->first != sender_fd){
-                write(iter->first, message.c_str(), length);
+                write(iter->first, message.c_str(), message.length());
             }
         }
     }
@@ -175,9 +175,11 @@ public:
                         client_manager.removeClient(events.at(i).data.fd);
                     }
                     else{
+                        std::cout << "message recieved" << std::endl;
                     	std::string received_message(buffer.data(), bytes_read);
                     	std::string message_to_send = std::to_string(events.at(i).data.fd) + " : " + received_message;
-                    	client_manager.broadCastMsg(events.at(i).data.fd, message_to_send, message_to_send.length());
+                        std::cout << message_to_send << std::endl;
+                    	client_manager.broadCastMsg(events.at(i).data.fd, message_to_send);
 					}
                 }
             }

@@ -81,9 +81,10 @@ class IOepollManager{
         setupEpoll(listener_fd);
     }
     void addToEpoll(int sock_fd){
-        event_type.events = EPOLLIN;
-        if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sock_fd, &event_type) < 0){
-            close(epoll_fd);
+        struct epoll_event client_event;
+        client_event.events = EPOLLIN;
+        client_event.data.fd = sock_fd;
+        if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sock_fd, &client_event) < 0){
             throw std::system_error(errno, std::generic_category(), "epoll_ctl() failed");
         }
         
@@ -104,10 +105,10 @@ class IOepollManager{
 private:
     int epoll_fd;
     int MAX_EVENTS;
-    struct epoll_event event_type;
     std::vector<struct epoll_event> events;
     int event_counts = 0;
     void setupEpoll(int listener_fd){
+        struct epoll_event event_type;
         epoll_fd = epoll_create(1);
         if (epoll_fd < 0){
             throw std::system_error(errno, std::generic_category(), "epoll_create() failed");
@@ -171,7 +172,7 @@ public:
                 else{
                     int bytes_read = read(events.at(i).data.fd, buffer.data(), BUFFER_SIZE);
                     if (bytes_read <= 0){
-                        std::cout << "Client disconnected: " << events.at(i).data.fd << std::endl;
+                        // std::cout << "Client disconnected: " << events.at(i).data.fd << std::endl;
                         client_manager.removeClient(events.at(i).data.fd);
                     }
                     else{

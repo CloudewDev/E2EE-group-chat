@@ -1,0 +1,28 @@
+# Project: ChatClient
+# Makefile created by Embarcadero Dev-C++ 6.3
+
+CPP      = g++.exe
+CC       = gcc.exe
+WINDRES  = windres.exe
+OBJ      = main.o
+LINKOBJ  = main.o
+LIBS     = -L"D:/dev-c/Dev-Cpp/TDM-GCC-64/lib" -L"D:/dev-c/Dev-Cpp/TDM-GCC-64/x86_64-w64-mingw32/lib" -static-libgcc "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.26100.0/um/x64/WS2_32.Lib" "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.26100.0/um/x86/WS2_32.Lib"
+INCS     = -I"D:/dev-c/Dev-Cpp/TDM-GCC-64/include" -I"D:/dev-c/Dev-Cpp/TDM-GCC-64/x86_64-w64-mingw32/include" -I"D:/dev-c/Dev-Cpp/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/9.2.0/include"
+CXXINCS  = -I"D:/dev-c/Dev-Cpp/TDM-GCC-64/include" -I"D:/dev-c/Dev-Cpp/TDM-GCC-64/x86_64-w64-mingw32/include" -I"D:/dev-c/Dev-Cpp/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/9.2.0/include" -I"D:/dev-c/Dev-Cpp/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/9.2.0/include/c++"
+BIN      = ChatClient.exe
+CXXFLAGS = $(CXXINCS) 
+CFLAGS   = $(INCS) 
+DEL      = D:\dev-c\Dev-Cpp\DevCpp.exe INTERNAL_DEL
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before $(BIN) all-after
+
+clean: clean-custom
+	${DEL} $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+	$(CPP) $(LINKOBJ) -o $(BIN) $(LIBS)
+
+main.o: main.cpp
+	$(CPP) -c main.cpp -o main.o $(CXXFLAGS)

@@ -19,7 +19,7 @@ class Server;
 
 class Listener{
 public:
-    explicit Listener(int port){
+    Listener(int port){
         setupSocket(port);
     }
     int getSockFd() const{
@@ -174,9 +174,11 @@ public:
                         std::cout << "Client disconnected: " << events.at(i).data.fd << std::endl;
                         client_manager.removeClient(events.at(i).data.fd);
                     }
-                    std::string received_message(buffer.data(), bytes_read);
-                    std::string message_to_send = std::to_string(events.at(i).data.fd) + " : " + received_message;
-                    client_manager.broadCastMsg(events.at(i).data.fd, message_to_send, message_to_send.length());
+                    else{
+                    	std::string received_message(buffer.data(), bytes_read);
+                    	std::string message_to_send = std::to_string(events.at(i).data.fd) + " : " + received_message;
+                    	client_manager.broadCastMsg(events.at(i).data.fd, message_to_send, message_to_send.length());
+					}
                 }
             }
 
@@ -223,6 +225,6 @@ int main(int argc, char *argv[]){
         return -1;
     }
 
-
+	return 0;
 
 }

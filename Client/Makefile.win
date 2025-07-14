@@ -4,8 +4,8 @@
 CPP      = g++.exe
 CC       = gcc.exe
 WINDRES  = windres.exe
-OBJ      = main.o Sender.o Client.o 이름없음7.o 이름없음8.o 이름없음9.o Reciever.o ServerConnector.o
-LINKOBJ  = main.o Sender.o Client.o 이름없음7.o 이름없음8.o 이름없음9.o Reciever.o ServerConnector.o
+OBJ      = main.o Sender.o Client.o Reciever.o ServerConnector.o
+LINKOBJ  = main.o Sender.o Client.o Reciever.o ServerConnector.o
 LIBS     = -L"D:/dev-c/Dev-Cpp/TDM-GCC-64/lib" -L"D:/dev-c/Dev-Cpp/TDM-GCC-64/x86_64-w64-mingw32/lib" -static-libgcc "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.26100.0/um/x64/WS2_32.Lib" "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.26100.0/um/x86/WS2_32.Lib"
 INCS     = -I"D:/dev-c/Dev-Cpp/TDM-GCC-64/include" -I"D:/dev-c/Dev-Cpp/TDM-GCC-64/x86_64-w64-mingw32/include" -I"D:/dev-c/Dev-Cpp/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/9.2.0/include"
 CXXINCS  = -I"D:/dev-c/Dev-Cpp/TDM-GCC-64/include" -I"D:/dev-c/Dev-Cpp/TDM-GCC-64/x86_64-w64-mingw32/include" -I"D:/dev-c/Dev-Cpp/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/9.2.0/include" -I"D:/dev-c/Dev-Cpp/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/9.2.0/include/c++"

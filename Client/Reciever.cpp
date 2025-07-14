@@ -1,11 +1,12 @@
 #include "Reciever.h"
 #include "ServerConnector.h"
-#include "SharedConents.h"
+#include "SharedContents.h"
 
 #include <vector>
 #include <mutex>
-#include <atmoic>
+#include <atomic>
 #include <iostream>
+#include <string>
 #include <winsock2.h>
 
 Reciever::Reciever(ServerConnector& server_connector, ThreadController& thread_controller):

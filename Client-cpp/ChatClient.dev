@@ -29,7 +29,7 @@ IncludeVersionInfo=0
 SupportXPThemes=0
 CompilerSet=0
 CompilerSettings=0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;12;0;0;0
-UnitCount=13
+UnitCount=16
 
 [VersionInfo]
 Major=1
@@ -81,33 +81,6 @@ BuildCmd=
 CompileCpp=1
 
 [Unit6]
-FileName=이름없음7
-Folder=
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit7]
-FileName=이름없음8
-Folder=
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit8]
-FileName=이름없음9
-Folder=
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit9]
 FileName=Reciever.h
 Folder=
 Compile=1
@@ -117,7 +90,7 @@ OverrideBuildCmd=0
 BuildCmd=
 CompileCpp=1
 
-[Unit10]
+[Unit7]
 FileName=Reciever.cpp
 Folder=
 Compile=1
@@ -127,7 +100,7 @@ OverrideBuildCmd=0
 BuildCmd=
 CompileCpp=1
 
-[Unit11]
+[Unit8]
 FileName=Client.h
 Folder=
 Compile=1
@@ -137,7 +110,7 @@ OverrideBuildCmd=0
 BuildCmd=
 CompileCpp=1
 
-[Unit12]
+[Unit9]
 FileName=ServerConnector.h
 Folder=
 Compile=1
@@ -147,8 +120,38 @@ OverrideBuildCmd=0
 BuildCmd=
 CompileCpp=1
 
-[Unit13]
+[Unit10]
 FileName=ServerConnector.cpp
+Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+CompileCpp=1
+
+[Unit11]
+FileName=SessionManager.cpp
+Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+CompileCpp=1
+
+[Unit12]
+FileName=SessionManager.h
+Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+CompileCpp=1
+
+[Unit13]
+FileName=Encryptor.h
 Folder=
 Compile=1
 Link=1
@@ -169,6 +172,36 @@ BuildCmd=
 
 [Unit3]
 FileName=Sender.h
+CompileCpp=1
+Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit14]
+FileName=Encryptor.cpp
+CompileCpp=1
+Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit15]
+FileName=Decryptor.h
+CompileCpp=1
+Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit16]
+FileName=Decryptor.cpp
 CompileCpp=1
 Folder=
 Compile=1

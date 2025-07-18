@@ -1,0 +1,15 @@
+D:\Projects\e2ee-group-chat\Client\bin\Debug\net9.0\Client.exe
+D:\Projects\e2ee-group-chat\Client\bin\Debug\net9.0\Client.deps.json
+D:\Projects\e2ee-group-chat\Client\bin\Debug\net9.0\Client.runtimeconfig.json
+D:\Projects\e2ee-group-chat\Client\bin\Debug\net9.0\Client.dll
+D:\Projects\e2ee-group-chat\Client\bin\Debug\net9.0\Client.pdb
+D:\Projects\e2ee-group-chat\Client\obj\Debug\net9.0\Client.GeneratedMSBuildEditorConfig.editorconfig
+D:\Projects\e2ee-group-chat\Client\obj\Debug\net9.0\Client.AssemblyInfoInputs.cache
+D:\Projects\e2ee-group-chat\Client\obj\Debug\net9.0\Client.AssemblyInfo.cs
+D:\Projects\e2ee-group-chat\Client\obj\Debug\net9.0\Client.csproj.CoreCompileInputs.cache
+D:\Projects\e2ee-group-chat\Client\obj\Debug\net9.0\Client.sourcelink.json
+D:\Projects\e2ee-group-chat\Client\obj\Debug\net9.0\Client.dll
+D:\Projects\e2ee-group-chat\Client\obj\Debug\net9.0\refint\Client.dll
+D:\Projects\e2ee-group-chat\Client\obj\Debug\net9.0\Client.pdb
+D:\Projects\e2ee-group-chat\Client\obj\Debug\net9.0\Client.genruntimeconfig.cache
+D:\Projects\e2ee-group-chat\Client\obj\Debug\net9.0\ref\Client.dll

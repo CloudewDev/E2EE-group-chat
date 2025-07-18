@@ -1,0 +1,88 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Projects\\e2ee-group-chat\\Client\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|d:\\projects\\e2ee-group-chat\\client\\communicationmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|solutionrelative:communicationmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|d:\\projects\\e2ee-group-chat\\client\\clientrunner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|solutionrelative:clientrunner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|d:\\projects\\e2ee-group-chat\\client\\serverconnector.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|solutionrelative:serverconnector.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|d:\\projects\\e2ee-group-chat\\client\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ClientRunner.cs",
+              "DocumentMoniker": "D:\\Projects\\e2ee-group-chat\\Client\\ClientRunner.cs",
+              "RelativeDocumentMoniker": "ClientRunner.cs",
+              "ToolTip": "D:\\Projects\\e2ee-group-chat\\Client\\ClientRunner.cs",
+              "RelativeToolTip": "ClientRunner.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAADwvxAAAAAnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-18T10:40:02.962Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ServerConnector.cs",
+              "DocumentMoniker": "D:\\Projects\\e2ee-group-chat\\Client\\ServerConnector.cs",
+              "RelativeDocumentMoniker": "ServerConnector.cs",
+              "ToolTip": "D:\\Projects\\e2ee-group-chat\\Client\\ServerConnector.cs",
+              "RelativeToolTip": "ServerConnector.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-17T05:32:31.958Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "CommunicationManager.cs",
+              "DocumentMoniker": "D:\\Projects\\e2ee-group-chat\\Client\\CommunicationManager.cs",
+              "RelativeDocumentMoniker": "CommunicationManager.cs",
+              "ToolTip": "D:\\Projects\\e2ee-group-chat\\Client\\CommunicationManager.cs",
+              "RelativeToolTip": "CommunicationManager.cs",
+              "ViewState": "AgIAADkAAAAAAAAAAAAQwEsAAABMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-17T23:02:04.478Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Projects\\e2ee-group-chat\\Client\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "D:\\Projects\\e2ee-group-chat\\Client\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-17T05:28:12.824Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

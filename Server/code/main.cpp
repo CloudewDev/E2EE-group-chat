@@ -2,6 +2,8 @@
 #include "Client.h"
 #include "ClientManager.h"
 #include "IOManager.h"
+#include "Communicator.h"
+#include "JsonController.h"
 #include "Server.h"
 
 #include <iostream>
@@ -14,7 +16,9 @@ int main(int argc, char *argv[]){
         Listener listener(atoi(argv[1]));
         IOepollManager io_epoll_manager(listener.getSockFd());
         ClientManager client_manager(io_epoll_manager);
-        Server server(listener, client_manager, io_epoll_manager);
+        JsonController jscon_controller;
+        Reciever reciever(jscon_controller);
+        Server server(listener, client_manager, io_epoll_manager, reciever, jscon_controller);
 
         server.run();
     }

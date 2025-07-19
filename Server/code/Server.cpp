@@ -2,6 +2,8 @@
 #include "Listener.h"
 #include "ClientManager.h"
 #include "IOManager.h"
+#include "Communicator.h"
+#include "JsonController.h"
 
 #include <sys/socket.h>
 #include <sys/epoll.h>
@@ -9,15 +11,17 @@
 #include <iostream>
 #include <arpa/inet.h>
 #include <vector>
+#include <cstring>
 
-Server::Server(Listener &listener, ClientManager &client_manager, IOepollManager &io_epoll_manager)
+Server::Server(Listener &listener, ClientManager &client_manager, IOepollManager &io_epoll_manager, Reciever& rv, JsonController& jc)
     : listener(listener),
       client_manager(client_manager),
-      io_epoll_manager(io_epoll_manager) {}
+      io_epoll_manager(io_epoll_manager),
+      reciever(rv),
+      json_controller(jc) {}
+
 void Server::run()
-{
-    const int BUFFER_SIZE = 1024;
-    std::vector<char> buffer(BUFFER_SIZE);
+{   
 
     while (true)
     {
@@ -33,20 +37,14 @@ void Server::run()
             }
             else
             {
-                int bytes_read = read(events.at(i).data.fd, buffer.data(), BUFFER_SIZE);
-                if (bytes_read <= 0)
-                {
-                    // std::cout << "Client disconnected: " << events.at(i).data.fd << std::endl;
-                    client_manager.removeClient(events.at(i).data.fd);
-                }
-                else
-                {
-                    std::cout << "message recieved" << std::endl;
-                    std::string received_message(buffer.data(), bytes_read);
-                    std::string message_to_send = std::to_string(events.at(i).data.fd) + " : " + received_message;
-                    std::cout << message_to_send << std::endl;
-                    client_manager.broadCastMsg(events.at(i).data.fd, message_to_send);
-                }
+                std::string input_bytes_str = reciever.ReadNBytes(4, events.at(i).data.fd);
+                int msg_length = 0;
+
+                std::memcpy(&msg_length, input_bytes_str.data(), sizeof(int));
+                std::string recieved_msg = reciever.ReadNBytes(msg_length, events.at(i).data.fd);
+                
+                client_manager.broadCastMsg(events.at(i).data.fd, json_controller.parseBodyFromJson(recieved_msg));
+                std::cout << json_controller.parseWhoFromJson(recieved_msg) + " : " + json_controller.parseBodyFromJson(recieved_msg) << std::endl;
             }
         }
     }

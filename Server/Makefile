@@ -1,16 +1,20 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -g -pthread
-TARGET = chat_server
-SRCS = Listener.cpp Client.cpp ClientManager.cpp IOManager.cpp Server.cpp main.cpp
+CXXFLAGS = -std=c++17 -Wall -g -pthread -Iinclude -Iinclude/rapidjson
 
-OBJS = $(SRCS:.cpp=.o)
+SRC_DIR = code
+OBJ_DIR = build
+
+TARGET = chat_server
+SRCS := $(wildcard $(SRC_DIR)/*.cpp)
+
+OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
 
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
-%.o: %.cpp
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:

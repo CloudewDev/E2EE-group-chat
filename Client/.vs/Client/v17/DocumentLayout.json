@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "D:\\Projects\\e2ee-group-chat\\Client\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|d:\\projects\\e2ee-group-chat\\client\\jsoncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|solutionrelative:jsoncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|d:\\projects\\e2ee-group-chat\\client\\communicationmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|solutionrelative:communicationmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|d:\\projects\\e2ee-group-chat\\client\\jsoncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|solutionrelative:jsoncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|d:\\projects\\e2ee-group-chat\\client\\dhshare.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -30,17 +30,17 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "JsonController.cs",
               "DocumentMoniker": "D:\\Projects\\e2ee-group-chat\\Client\\JsonController.cs",
               "RelativeDocumentMoniker": "JsonController.cs",
               "ToolTip": "D:\\Projects\\e2ee-group-chat\\Client\\JsonController.cs",
               "RelativeToolTip": "JsonController.cs",
-              "ViewState": "AgIAABEAAAAAAAAAAAAQwCEAAAAhAAAAAAAAAA==",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAywBQAAABCAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-07-19T02:19:25.674Z",
               "IsPinned": true,
@@ -48,13 +48,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "CommunicationManager.cs",
               "DocumentMoniker": "D:\\Projects\\e2ee-group-chat\\Client\\CommunicationManager.cs",
               "RelativeDocumentMoniker": "CommunicationManager.cs",
               "ToolTip": "D:\\Projects\\e2ee-group-chat\\Client\\CommunicationManager.cs",
               "RelativeToolTip": "CommunicationManager.cs",
-              "ViewState": "AgIAAB4AAAAAAAAAAAAywDMAAABJAAAAAAAAAA==",
+              "ViewState": "AgIAAB4AAAAAAAAAAAAIwDIAAABFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-07-17T23:02:04.478Z",
               "EditorCaption": ""
@@ -69,8 +69,7 @@
               "RelativeToolTip": "DHShare.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvw8AAAAlAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-18T22:36:55.016Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-18T22:36:55.016Z"
             },
             {
               "$type": "Document",

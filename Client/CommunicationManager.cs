@@ -42,12 +42,13 @@ namespace CommunicationManager_ns
             while (true)
             {
                 await ReadNBytesAsync(4, msg_size_data);
+                Array.Reverse(msg_size_data);
                 int msg_size = BitConverter.ToInt32(msg_size_data, 0);
                 byte[] message_byte = new byte[msg_size];
                 await ReadNBytesAsync(msg_size, message_byte);
                 message = Encoding.UTF8.GetString(message_byte, 0, msg_size);
 
-                json_controller.ParseBodyFromJson(message);
+                message = json_controller.ParseBodyFromJson(message);
                 
                 await Task.Run(() => Console.WriteLine("-> " + message));
 
@@ -101,9 +102,7 @@ namespace CommunicationManager_ns
                 {
                     line = json_controller.BuildJson(JsonController.MSG_TYPE.Message, nickname, line);
                     byte[] buffer = Encoding.UTF8.GetBytes(line);
-
                     byte[] lengthPrefix = BitConverter.GetBytes(buffer.Length);
-                    Array.Reverse(lengthPrefix);
                     byte[] packet = new byte[lengthPrefix.Length + buffer.Length];
                     Buffer.BlockCopy(lengthPrefix, 0, packet, 0, 4);
                     Buffer.BlockCopy(buffer, 0, packet, 4, buffer.Length);

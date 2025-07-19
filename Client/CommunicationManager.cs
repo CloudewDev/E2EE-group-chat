@@ -33,31 +33,40 @@ namespace CommunicationManager_ns
             JsonController_ns.JsonController jp) : base(sc, sm, jp)
         {
         }
-        private const int byte_size = 1024;
-        private byte[] buffer = new byte[byte_size];
+        private byte[] msg_size_data = new byte[4];
         private string? message;
-        private int bytes_read;
 
         public async Task LoopRecieveAsync(CancellationToken token)
         {
 
             while (true)
             {
+                await ReadNBytesAsync(4, msg_size_data);
+                int msg_size = BitConverter.ToInt32(msg_size_data, 0);
+                byte[] message_byte = new byte[msg_size];
+                await ReadNBytesAsync(msg_size, message_byte);
+                message = Encoding.UTF8.GetString(message_byte, 0, msg_size);
 
-                bytes_read = await sock.ReceiveAsync(new ArraySegment<byte>(buffer), SocketFlags.None);
+                json_controller.ParseBodyFromJson(message);
+                
+                await Task.Run(() => Console.WriteLine("-> " + message));
 
-                if (bytes_read == 0)
+            }
+
+        }
+        private async Task ReadNBytesAsync(int n, byte[] buffer)
+        {
+            int currentRead = 0;
+            int bytes_read = 0; ;
+            while (currentRead < n)
+            {
+                bytes_read = await sock.ReceiveAsync(new ArraySegment<byte>(buffer, currentRead, n - currentRead), SocketFlags.None);
+                if (bytes_read <= 0)
                 {
                     await server_connector.CloseSockAsync();
-                    Console.WriteLine("server closed");
-                    break;
+                    throw new Exception("server closed");
                 }
-                else
-                {
-                    message = Encoding.UTF8.GetString(buffer, 0, bytes_read);
-                    await Task.Run(() => Console.WriteLine("-> " + message));
-
-                }
+                currentRead += bytes_read;
 
             }
 

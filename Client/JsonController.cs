@@ -31,10 +31,11 @@ namespace JsonController_ns
 
         }
 
-		public JsonData ParseJson(string input)
+		public string ParseBodyFromJson(string input)
 		{
             JsonData parsed = JsonSerializer.Deserialize<JsonData>(input);
-            return parsed;
+            string body = parsed.Body;
+            return body;
         }
 	}
 

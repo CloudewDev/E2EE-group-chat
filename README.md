@@ -12,4 +12,6 @@ C++을 이용한 서버 코드에서는 수동 자원 할당 대신 RAII 원칙�
 
 현재 기본적인 통신 기능이 만들어졌고, 암호화 기능을 추가하고 있습니다.
 
-https://blog.naver.com/cloudewdev/223931214106 << 네이버 블로그에 올리는 구체적인 개발일지입니다.
+https://blog.naver.com/cloudewdev/223939664559 << 통신에 사용되는 기본적인 JSON 기반 프로토콜에 대한 추가 설명
+
+https://blog.naver.com/cloudewdev/223932455696 << 이 프로그램에서 사용한 종단간 암호화의 이론적 배경

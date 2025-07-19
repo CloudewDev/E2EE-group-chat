@@ -20,12 +20,9 @@ void ClientManager::removeClient(int client_socket_fd){
     client_map.erase(client_socket_fd);
 }
 
-void ClientManager::broadCastMsg(int sender_fd, std::string message){
+void ClientManager::broadCastMsg(std::string message){
     for (auto iter = client_map.begin(); iter != client_map.end(); iter++)
     {
-        if (iter->first != sender_fd)
-        {
-            write(iter->first, message.c_str(), message.length());
-        }
+        write(iter->first, message.c_str(), message.length());
     }
 }

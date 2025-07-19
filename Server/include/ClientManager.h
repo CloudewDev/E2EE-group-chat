@@ -13,7 +13,7 @@ public:
     ClientManager(IOepollManager& io_epoll_manager);
     void addClient(int socket_fd);
     void removeClient(int client_socket_fd);
-    void broadCastMsg(int sender_fd, std::string message);
+    void broadCastMsg(std::string message);
 
 private:
     IOepollManager& io_epoll_manager;

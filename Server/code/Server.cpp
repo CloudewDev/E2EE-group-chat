@@ -41,10 +41,10 @@ void Server::run()
                 int msg_length = 0;
 
                 std::memcpy(&msg_length, input_bytes_str.data(), sizeof(int));
-                std::string recieved_msg = reciever.ReadNBytes(msg_length, events.at(i).data.fd);
-                
-                client_manager.broadCastMsg(events.at(i).data.fd, json_controller.parseBodyFromJson(recieved_msg));
-                std::cout << json_controller.parseWhoFromJson(recieved_msg) + " : " + json_controller.parseBodyFromJson(recieved_msg) << std::endl;
+                std::string recieved_data = reciever.ReadNBytes(msg_length, events.at(i).data.fd);
+
+                client_manager.broadCastMsg(recieved_data);
+                std::cout << json_controller.parseWhoFromJson(recieved_data) + " : " + json_controller.parseBodyFromJson(recieved_data) << std::endl;
             }
         }
     }

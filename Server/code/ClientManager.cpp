@@ -6,6 +6,7 @@
 #include <memory>
 #include <unistd.h>
 #include <string>
+#include <iostream>
 
 ClientManager::ClientManager(IOepollManager& io_epoll_manager) : 
     io_epoll_manager(io_epoll_manager) {}
@@ -23,6 +24,7 @@ void ClientManager::removeClient(int client_socket_fd){
 void ClientManager::broadCastMsg(std::string message){
     for (auto iter = client_map.begin(); iter != client_map.end(); iter++)
     {
+        std::cout << "sended " + message << std::endl;
         write(iter->first, message.c_str(), message.length());
     }
 }

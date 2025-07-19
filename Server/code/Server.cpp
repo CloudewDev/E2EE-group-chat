@@ -38,13 +38,26 @@ void Server::run()
             else
             {
                 std::string input_bytes_str = reciever.ReadNBytes(4, events.at(i).data.fd);
-                int msg_length = 0;
+                if (input_bytes_str == ""){
+                    // std::cout << "user disconnected" << std::endl;
+                
+                }
+                else{
+                    int msg_length = 0;
+    
+                    std::memcpy(&msg_length, input_bytes_str.data(), sizeof(int));
+                    std::string recieved_data = reciever.ReadNBytes(msg_length, events.at(i).data.fd);
+                    
+                    int data_size = recieved_data.length();
+                    int lengthNetworkOrder = htonl(data_size);
+                    std::vector<char> packet(4 + data_size);
 
-                std::memcpy(&msg_length, input_bytes_str.data(), sizeof(int));
-                std::string recieved_data = reciever.ReadNBytes(msg_length, events.at(i).data.fd);
+                    std::memcpy(packet.data(), &lengthNetworkOrder, 4);
+                    std::memcpy(packet.data() + 4, recieved_data.data(), data_size);
+                    std::string data_to_send(packet.begin(), packet.end());
 
-                client_manager.broadCastMsg(recieved_data);
-                std::cout << json_controller.parseWhoFromJson(recieved_data) + " : " + json_controller.parseBodyFromJson(recieved_data) << std::endl;
+                    client_manager.broadCastMsg(data_to_send);
+                }
             }
         }
     }

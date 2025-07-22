@@ -7,12 +7,12 @@ using System.Security.Cryptography;
 using DHShare_ns;
 
 
-namespace HandShakeStateMachine_ns
+namespace HandshakeStateMachine_ns
 {
-	public class HandShakeStateMachine
+	public class HandshakeStateMachine
 	{
 		private DHShare dh_share;
-		public HandShakeStateMachine(DHShare ds) 
+		public HandshakeStateMachine(DHShare ds) 
 		{ 
 			dh_share = ds;
 		}

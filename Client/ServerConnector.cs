@@ -2,7 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 
-using HandShakeStateMachine_ns;
+using HandshakeStateMachine_ns;
 
 
 namespace ServerConnector_ns
@@ -14,8 +14,8 @@ namespace ServerConnector_ns
 		public Socket Sock{
 			get { return sock; }
 		}
-		private HandShakeStateMachine_ns.HandShakeStateMachine handshake_state_machine;
-		public ServerConnector(HandShakeStateMachine_ns.HandShakeStateMachine hm)
+		private HandshakeStateMachine_ns.HandshakeStateMachine handshake_state_machine;
+		public ServerConnector(HandshakeStateMachine_ns.HandshakeStateMachine hm)
 		{
 			handshake_state_machine = hm;
         }

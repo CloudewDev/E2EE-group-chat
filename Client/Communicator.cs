@@ -6,7 +6,7 @@ using System.Numerics;
 using System.Security.Cryptography;
 
 using ServerConnector_ns;
-using HandShakeStateMachine_ns;
+using HandshakeStateMachine_ns;
 using JsonController_ns;
 
 namespace Communicator_ns
@@ -14,11 +14,11 @@ namespace Communicator_ns
     public class Communicator
     {
         protected readonly ServerConnector_ns.ServerConnector server_connector;
-        protected readonly HandShakeStateMachine_ns.HandShakeStateMachine handshake_state_machine;
+        protected readonly HandshakeStateMachine_ns.HandshakeStateMachine handshake_state_machine;
         protected readonly JsonController_ns.JsonController json_controller;
         protected readonly Socket sock;
         public Communicator(ServerConnector_ns.ServerConnector sc,
-            HandShakeStateMachine_ns.HandShakeStateMachine hs,
+            HandshakeStateMachine_ns.HandshakeStateMachine hs,
             JsonController_ns.JsonController jp)
         {
             server_connector = sc;
@@ -31,7 +31,7 @@ namespace Communicator_ns
     public class Reciever : Communicator
     {
         public Reciever(ServerConnector_ns.ServerConnector sc,
-            HandShakeStateMachine_ns.HandShakeStateMachine hs,
+            HandshakeStateMachine_ns.HandshakeStateMachine hs,
             JsonController_ns.JsonController jp) : base(sc, hs, jp)
         {}
 
@@ -41,13 +41,15 @@ namespace Communicator_ns
             while (true)
             {
                 string message = await RecieveAsync();
-                if (handshake_state_machine.MyState == HandShakeStateMachine.STATE.rcv_handshake)
+                Console.WriteLine("recieved" + message);
+                if (handshake_state_machine.MyState == HandshakeStateMachine.STATE.rcv_handshake)
                 {
                     if (json_controller.ParseFromFromJson(message) == handshake_state_machine.CurrentHandShaker &&
                         json_controller.ParseTypeFromJson(message) == (int)JsonController.MSG_TYPE.dh)
                     {
-                        Console.WriteLine("recieved message is from the one who is handshaking with me. now I got shared secret.");
                         handshake_state_machine.GetSharedSecret(json_controller.ParseBodyFromJson(message));
+                        Console.WriteLine("I recieved opponent's number. I got shared secret. It's " + handshake_state_machine.SharedSecret);
+                        handshake_state_machine.SetMyState_ToIdle();
                     }
                     else
                     {
@@ -111,7 +113,7 @@ namespace Communicator_ns
     {
         public readonly string nickname;
         public Sender(ServerConnector_ns.ServerConnector sc,
-            HandShakeStateMachine_ns.HandShakeStateMachine hs,
+            HandshakeStateMachine_ns.HandshakeStateMachine hs,
             JsonController_ns.JsonController jp,
             string nickname) : base(sc, hs, jp)
 
@@ -124,7 +126,7 @@ namespace Communicator_ns
         {
             while (true)
             {
-                if (handshake_state_machine.MyState == HandShakeStateMachine.STATE.send_handshake)
+                if (handshake_state_machine.MyState == HandshakeStateMachine.STATE.send_handshake)
                 {
                     line = json_controller.BuildJson(JsonController.MSG_TYPE.dh, nickname, handshake_state_machine.CurrentHandShaker, handshake_state_machine.MyBigNum);
                     await sock.SendAsync(new ArraySegment<byte>(MakeBytesFormat(line)), SocketFlags.None);

@@ -1,7 +1,7 @@
 ﻿using System;
 
 using ServerConnector_ns;
-using HandShakeStateMachine_ns;
+using HandshakeStateMachine_ns;
 using JsonController_ns;
 using Communicator_ns;
 using ClientRunner_ns;
@@ -22,7 +22,7 @@ class Program
             while (string.IsNullOrWhiteSpace(nickname.Trim()));
 
             DHShare_ns.DHShare dh_share = new DHShare_ns.DHShare();
-            HandShakeStateMachine_ns.HandShakeStateMachine handshake_state_machine = new HandShakeStateMachine_ns.HandShakeStateMachine(dh_share);
+            HandshakeStateMachine_ns.HandshakeStateMachine handshake_state_machine = new HandshakeStateMachine_ns.HandshakeStateMachine(dh_share);
             ServerConnector_ns.ServerConnector server_connector = new ServerConnector_ns.ServerConnector(handshake_state_machine);
             await server_connector.Init(args[0], args[1]);
 

@@ -6,16 +6,18 @@
 struct JsonData{
 public:
     int type;
-    std::string who;
+    std::string from;
+    std::string to;
     std::string body;
 
 };
 
 class JsonController{
 public:
-    std::string buildJson(int type, std::string& who, std::string& message);
+    std::string buildJson(int type, std::string& from, std::string& to, std::string& message);
     int parseTypeFromJson(std::string& input);
-    std::string parseWhoFromJson(std::string& input);
+    std::string parseFromFromJson(std::string& input);
+    std::string parseToFromJson(std::string& input);
     std::string parseBodyFromJson(std::string& input);
 };
 

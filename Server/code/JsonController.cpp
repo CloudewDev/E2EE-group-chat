@@ -6,13 +6,14 @@
 
 #include <string>
 
-std::string JsonController::buildJson(int type_input, std::string& who_input, std::string& body_input){
+std::string JsonController::buildJson(int type_input, std::string& from_input, std::string& to_input, std::string& body_input){
 
     rapidjson::Document doc;
     doc.SetObject();
     
     doc.AddMember("type", type_input, doc.GetAllocator());
-    doc.AddMember("who", rapidjson::Value(who_input.c_str(), doc.GetAllocator()), doc.GetAllocator());
+    doc.AddMember("from", rapidjson::Value(from_input.c_str(), doc.GetAllocator()), doc.GetAllocator());
+    doc.AddMember("to", rapidjson::Value(to_input.c_str(), doc.GetAllocator()), doc.GetAllocator());
     doc.AddMember("body", rapidjson::Value(body_input.c_str(), doc.GetAllocator()), doc.GetAllocator());
 
     rapidjson::StringBuffer buffer;
@@ -29,10 +30,15 @@ int JsonController::parseTypeFromJson(std::string& input){
     return d["type"].GetInt();
 
 }
-std::string JsonController::parseWhoFromJson(std::string& input){
+std::string JsonController::parseFromFromJson(std::string& input){
     rapidjson::Document d;
     d.Parse(input.c_str());
-    return d["who"].GetString();
+    return d["from"].GetString();
+}
+std::string JsonController::parseToFromJson(std::string& input){
+    rapidjson::Document d;
+    d.Parse(input.c_str());
+    return d["to"].GetString();
 }
 std::string JsonController::parseBodyFromJson(std::string& input){
 

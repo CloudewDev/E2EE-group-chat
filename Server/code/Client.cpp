@@ -1,5 +1,6 @@
 #include "Client.h"
 
+#include <vector>
 
 Client::Client(int fd){
     socket_fd = fd;

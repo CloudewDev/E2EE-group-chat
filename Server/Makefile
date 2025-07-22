@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -g -pthread -Iinclude -Iinclude/rapidjson
+CXXFLAGS = -std=c++17 -Wall -g -pthread -Iinclude -Iinclude/rapidjson -Iinclude/gmp
 
 SRC_DIR = code
 OBJ_DIR = build
@@ -12,7 +12,7 @@ OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) -o $@ $^ ./include/gmp/lib/libgmp.a
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@

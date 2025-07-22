@@ -4,6 +4,7 @@
 #include "IOManager.h"
 #include "Communicator.h"
 #include "JsonController.h"
+#include "DHCalculator.h"
 
 #include <sys/socket.h>
 #include <sys/epoll.h>
@@ -12,20 +13,22 @@
 #include <arpa/inet.h>
 #include <vector>
 #include <cstring>
+#include <string>
 
-Server::Server(Listener &listener, ClientManager &client_manager, IOepollManager &io_epoll_manager, Reciever& rv, JsonController& jc)
-    : listener(listener),
-      client_manager(client_manager),
-      io_epoll_manager(io_epoll_manager),
+Server::Server(Listener &ls, ClientManager &cm, IOepollManager &iem, Reciever& rv, JsonController& jc, DHCalculator& dc)
+    : listener(ls),
+      client_manager(cm),
+      io_epoll_manager(iem),
       reciever(rv),
-      json_controller(jc) {}
+      json_controller(jc),
+      dh_calculator(dc) {}
 
 void Server::run()
 {   
+    std::cout << "server is running" << std::endl;
 
     while (true)
     {
-
         int event_counts = io_epoll_manager.watch();
         const std::vector<struct epoll_event> &events = io_epoll_manager.getEvents();
 
@@ -47,16 +50,34 @@ void Server::run()
     
                     std::memcpy(&msg_length, input_bytes_str.data(), sizeof(int));
                     std::string recieved_data = reciever.ReadNBytes(msg_length, events.at(i).data.fd);
+                    std::cout << "recieved " << recieved_data << std::endl;
                     
-                    int data_size = recieved_data.length();
-                    int lengthNetworkOrder = htonl(data_size);
-                    std::vector<char> packet(4 + data_size);
+                    if (json_controller.parseTypeFromJson(recieved_data) == 0
+                        && json_controller.parseToFromJson(recieved_data) == "group")
+                    {
+                        client_manager.broadCastMsg(MakePacket(msg_length, recieved_data));
+                    }
+                    else if (json_controller.parseTypeFromJson(recieved_data) == 1
+                            && json_controller.parseToFromJson(recieved_data) == "server")
+                    {
+                        std::string me = "server";
+                        std::string opponent = json_controller.parseFromFromJson(recieved_data);
+                        client_manager.SetClientNickname(events.at(i).data.fd, opponent);
+                        std::cout << "handshake requested from " << opponent << std::endl;
+                        std::string my_num = dh_calculator.SetMyNum();
+                        
+                        std::string data_to_send = json_controller.buildJson(1, me, opponent, my_num);
+                        std::string shared_secret = dh_calculator.CalculateSharedSecret(json_controller.parseBodyFromJson(recieved_data));
+                        std::cout << "now sending " << data_to_send << std::endl;
+                        client_manager.SendMsg(opponent, MakePacket(data_to_send.size(), data_to_send));
+                        std::cout << "shared secret is " << shared_secret << std::endl;
 
-                    std::memcpy(packet.data(), &lengthNetworkOrder, 4);
-                    std::memcpy(packet.data() + 4, recieved_data.data(), data_size);
-                    std::string data_to_send(packet.begin(), packet.end());
+                        
+                    }
+                    else{
+                        client_manager.SendMsg(json_controller.parseToFromJson(recieved_data), MakePacket(msg_length, recieved_data));
+                    }
 
-                    client_manager.broadCastMsg(data_to_send);
                 }
             }
         }
@@ -80,4 +101,13 @@ void Server::setup_client(int listener_fd)
         client_manager.addClient(socket_fd);
         std::cout << "connection established" << std::endl;
     }
+}
+
+std::string Server::MakePacket(int size, std::string message_to_sennd){
+    int lengthNetworkOrder = htonl(size);
+    std::vector<char> packet(4 + size);
+    std::memcpy(packet.data(), &lengthNetworkOrder, 4);
+    std::memcpy(packet.data() + 4, message_to_sennd.data(), size);
+    std::string data_to_send(packet.begin(), packet.end());
+    return data_to_send;
 }

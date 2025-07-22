@@ -14,6 +14,37 @@ namespace DHShare_ns
             "21397648331060020541347000021006772701001583240433485642307645601349094213" +
             "47235904972093595995702295002933116041213041748195365487233421073015459402" +
             "268178774054733479303");
-	}
+        private BigInteger a = 2;
+        private BigInteger myPow;
+        private BigInteger myValue;
+
+        public BigInteger MakeMyNum()
+        {
+            myPow = GenerateRandomBigInteger();
+            myValue = BigInteger.ModPow(a, myPow, prime);
+            return myValue;
+        }
+
+        public BigInteger GetSharedSecret(BigInteger input)
+        {
+            return BigInteger.ModPow(input, myPow, prime);
+        }
+
+        private BigInteger GenerateRandomBigInteger()
+        {
+            byte[] bytes = prime.ToByteArray();
+            BigInteger R;
+            RandomNumberGenerator r = RandomNumberGenerator.Create();
+
+            do
+            {
+                r.GetBytes(bytes);
+                bytes[bytes.Length - 1] &= (byte)0x7F; //force sign bit to positive
+                R = new BigInteger(bytes);
+            } while (R > prime - 1);
+
+            return R;
+        }
+    }
 
 }

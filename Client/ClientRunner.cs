@@ -2,18 +2,18 @@
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
-using CommunicationManager_ns;
+using Communicator_ns;
 using ServerConnector_ns;
 namespace ClientRunner_ns
 {
     public class ClientRunner
     {
         private readonly ServerConnector_ns.ServerConnector server_connector;
-        private readonly CommunicationManager_ns.Sender sender;
-        private readonly CommunicationManager_ns.Reciever reciever;
+        private readonly Communicator_ns.Sender sender;
+        private readonly Communicator_ns.Reciever reciever;
         private readonly Socket sock;
 
-        public ClientRunner(ServerConnector_ns.ServerConnector sc, CommunicationManager_ns.Sender sd, CommunicationManager_ns.Reciever rc)
+        public ClientRunner(ServerConnector_ns.ServerConnector sc, Communicator_ns.Sender sd, Communicator_ns.Reciever rc)
         {
             server_connector = sc;
             sender = sd;

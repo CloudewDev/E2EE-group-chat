@@ -1,10 +1,11 @@
 ﻿using System;
 
 using ServerConnector_ns;
-using SessionManager_ns;
+using HandShakeStateMachine_ns;
 using JsonController_ns;
-using CommunicationManager_ns;
+using Communicator_ns;
 using ClientRunner_ns;
+using DHShare_ns;
 
 class Program
 {
@@ -19,13 +20,17 @@ class Program
                 nickname = Console.ReadLine();
             }
             while (string.IsNullOrWhiteSpace(nickname.Trim()));
-            ServerConnector_ns.ServerConnector server_connector = new ServerConnector_ns.ServerConnector();
+
+            DHShare_ns.DHShare dh_share = new DHShare_ns.DHShare();
+            HandShakeStateMachine_ns.HandShakeStateMachine handshake_state_machine = new HandShakeStateMachine_ns.HandShakeStateMachine(dh_share);
+            ServerConnector_ns.ServerConnector server_connector = new ServerConnector_ns.ServerConnector(handshake_state_machine);
             await server_connector.Init(args[0], args[1]);
-            SessionManager_ns.SessionManager session_manager = new SessionManager_ns.SessionManager();
+
             JsonController_ns.JsonController json_controller = new JsonController_ns.JsonController();
-            CommunicationManager_ns.Reciever reciever = new Reciever(server_connector, session_manager, json_controller);
-            CommunicationManager_ns.Sender sender = new Sender(server_connector, session_manager, json_controller, nickname);
+            Communicator_ns.Reciever reciever = new Reciever(server_connector, handshake_state_machine, json_controller);
+            Communicator_ns.Sender sender = new Sender(server_connector, handshake_state_machine, json_controller, nickname);
             ClientRunner_ns.ClientRunner client_runner = new ClientRunner_ns.ClientRunner(server_connector, sender, reciever);
+
             await client_runner.Run();
         }
         catch (Exception ex) { 

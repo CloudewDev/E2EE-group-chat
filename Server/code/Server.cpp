@@ -62,15 +62,26 @@ void Server::run()
                     {
                         std::string me = "server";
                         std::string opponent = json_controller.parseFromFromJson(recieved_data);
+
                         client_manager.SetClientNickname(events.at(i).data.fd, opponent);
+                        
                         std::cout << "handshake requested from " << opponent << std::endl;
                         std::string my_num = dh_calculator.SetMyNum();
                         
+                        dh_calculator.CalculateSharedSecret(json_controller.parseBodyFromJson(recieved_data));
+
                         std::string data_to_send = json_controller.buildJson(1, me, opponent, my_num);
-                        std::string shared_secret = dh_calculator.CalculateSharedSecret(json_controller.parseBodyFromJson(recieved_data));
+                        std::vector<char> shared_secret_byte;
+                        dh_calculator.GetShareSecretByte(shared_secret_byte);
+                        std::cout << "byte size is " << shared_secret_byte.size() << std::endl;
+
+                        unsigned char* temp = reinterpret_cast<unsigned char*>(shared_secret_byte.data());
+                        size_t temp_size = shared_secret_byte.size();
+                        std::string encoded_secret = dh_calculator.base64Encode(temp, temp_size);
+
                         std::cout << "now sending " << data_to_send << std::endl;
                         client_manager.SendMsg(opponent, MakePacket(data_to_send.size(), data_to_send));
-                        std::cout << "shared secret is " << shared_secret << std::endl;
+                        std::cout << "shared secret is " << encoded_secret << std::endl;
 
                         
                     }

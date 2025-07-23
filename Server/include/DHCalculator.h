@@ -3,6 +3,7 @@
 
 #include <gmp/gmp.h>
 #include <string>
+#include <vector>
 
 class DHCalculator{
 
@@ -11,7 +12,9 @@ public:
     ~DHCalculator();
     void Init();
     std::string SetMyNum();
-    std::string CalculateSharedSecret(std::string input);
+    void CalculateSharedSecret(std::string input);
+    void GetShareSecretByte(std::vector<char>& output);
+    std::string base64Encode(const unsigned char* buffer, size_t length);
 
 private:
     std::string prime_str = "32317006071311007300714876688669951960444102669715484032"
@@ -25,5 +28,7 @@ private:
     gmp_randstate_t state;
 
 };
+
+
 
 #endif

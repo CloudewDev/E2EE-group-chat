@@ -27,7 +27,8 @@ namespace HandshakeStateMachine_ns
 		private BigInteger shared_secret = 0;
 		public string MyBigNum { get { return my_bignum.ToString(); } }
 		public string OpponentBigNum { get { return opponent_bignum.ToString(); } set { opponent_bignum = BigInteger.Parse(OpponentBigNum); } }
-		public string SharedSecret { get { return shared_secret.ToString(); } }
+		public string SharedSecretAsString { get { return shared_secret.ToString(); } }
+		public byte[] SharedSecretAsByte { get { return shared_secret.ToByteArray(); } }
 		public void SetMyState_ToIdle()
 		{
 			current_handshaker = null;

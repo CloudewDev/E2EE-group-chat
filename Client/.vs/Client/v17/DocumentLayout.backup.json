@@ -7,24 +7,24 @@
       "RelativeMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|solutionrelative:communicator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|d:\\projects\\e2ee-group-chat\\client\\jsoncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|solutionrelative:jsoncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|d:\\projects\\e2ee-group-chat\\client\\handshakestatemachine.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|solutionrelative:handshakestatemachine.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|d:\\projects\\e2ee-group-chat\\client\\dhshare.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|solutionrelative:dhshare.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|d:\\projects\\e2ee-group-chat\\client\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|d:\\projects\\e2ee-group-chat\\client\\clientrunner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|solutionrelative:clientrunner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|d:\\projects\\e2ee-group-chat\\client\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|d:\\projects\\e2ee-group-chat\\client\\jsoncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|solutionrelative:jsoncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|d:\\projects\\e2ee-group-chat\\client\\dhshare.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|solutionrelative:dhshare.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{BA64B523-C965-4060-AE90-7DE6E66961CC}|Client.csproj|d:\\projects\\e2ee-group-chat\\client\\serverconnector.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -50,12 +50,11 @@
               "RelativeToolTip": "ServerConnector.cs",
               "ViewState": "AgIAABAAAAAAAAAAAAAAwBEAAAA3AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-21T13:16:36.342Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-21T13:16:36.342Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 4,
               "Title": "JsonController.cs",
               "DocumentMoniker": "D:\\Projects\\e2ee-group-chat\\Client\\JsonController.cs",
               "RelativeDocumentMoniker": "JsonController.cs",
@@ -63,12 +62,11 @@
               "RelativeToolTip": "JsonController.cs",
               "ViewState": "AgIAABcAAAAAAAAAAAAcwBEAAAAiAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-19T02:19:25.674Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-19T02:19:25.674Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "DHShare.cs",
               "DocumentMoniker": "D:\\Projects\\e2ee-group-chat\\Client\\DHShare.cs",
               "RelativeDocumentMoniker": "DHShare.cs",
@@ -76,18 +74,17 @@
               "RelativeToolTip": "DHShare.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAlAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-21T13:30:33.613Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-21T13:30:33.613Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "HandshakeStateMachine.cs",
-              "DocumentMoniker": "D:\\Projects\\e2ee-group-chat\\Client\\HandshakeStateMachine.cs",
-              "RelativeDocumentMoniker": "HandshakeStateMachine.cs",
-              "ToolTip": "D:\\Projects\\e2ee-group-chat\\Client\\HandshakeStateMachine.cs",
-              "RelativeToolTip": "HandshakeStateMachine.cs",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAAA4AAAAOAAAAAAAAAA==",
+              "DocumentMoniker": "D:\\Projects\\e2ee-group-chat\\Client\\HandShakeStateMachine.cs",
+              "RelativeDocumentMoniker": "HandShakeStateMachine.cs",
+              "ToolTip": "D:\\Projects\\e2ee-group-chat\\Client\\HandShakeStateMachine.cs",
+              "RelativeToolTip": "HandShakeStateMachine.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAAB0AAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-07-21T10:53:22.358Z",
               "EditorCaption": ""
@@ -100,14 +97,14 @@
               "RelativeDocumentMoniker": "Communicator.cs",
               "ToolTip": "D:\\Projects\\e2ee-group-chat\\Client\\Communicator.cs",
               "RelativeToolTip": "Communicator.cs",
-              "ViewState": "AgIAACMAAAAAAAAAAAAQwDMAAABEAAAAAAAAAA==",
+              "ViewState": "AgIAACAAAAAAAAAAAAAzwDgAAABdAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-07-17T23:02:04.478Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 3,
               "Title": "ClientRunner.cs",
               "DocumentMoniker": "D:\\Projects\\e2ee-group-chat\\Client\\ClientRunner.cs",
               "RelativeDocumentMoniker": "ClientRunner.cs",
@@ -120,7 +117,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 2,
               "Title": "Program.cs",
               "DocumentMoniker": "D:\\Projects\\e2ee-group-chat\\Client\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",

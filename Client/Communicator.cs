@@ -33,7 +33,7 @@ namespace Communicator_ns
         public Reciever(ServerConnector_ns.ServerConnector sc,
             HandshakeStateMachine_ns.HandshakeStateMachine hs,
             JsonController_ns.JsonController jp) : base(sc, hs, jp)
-        {}
+        { }
 
         public async Task LoopRecieveAsync(CancellationToken token)
         {
@@ -42,39 +42,39 @@ namespace Communicator_ns
             {
                 string message = await RecieveAsync();
                 Console.WriteLine("recieved" + message);
-                if (handshake_state_machine.MyState == HandshakeStateMachine.STATE.rcv_handshake)
+                switch (json_controller.ParseTypeFromJson(message))
                 {
-                    if (json_controller.ParseFromFromJson(message) == handshake_state_machine.CurrentHandShaker &&
-                        json_controller.ParseTypeFromJson(message) == (int)JsonController.MSG_TYPE.dh)
-                    {
-                        handshake_state_machine.GetSharedSecret(json_controller.ParseBodyFromJson(message));
-                        Console.WriteLine("I recieved opponent's number. I got shared secret. It's " + handshake_state_machine.SharedSecret);
-                        handshake_state_machine.SetMyState_ToIdle();
-                    }
-                    else
-                    {
-                        Console.WriteLine("recieved message is not from the one who is handshaking with me. ignore this.");
-                    }
-                }
-                else
-                {
-                    switch (json_controller.ParseTypeFromJson(message))
-                    {
-                        case (int)JsonController.MSG_TYPE.message:
-                            await Task.Run(() => Console.WriteLine(json_controller.ParseFromFromJson(message) + " : " + json_controller.ParseBodyFromJson(message)));
-                            break;
-                        case (int)JsonController.MSG_TYPE.dh :
+                    case (int)JsonController.MSG_TYPE.message:
+                        await Task.Run(() => Console.WriteLine(json_controller.ParseFromFromJson(message) + " : " + json_controller.ParseBodyFromJson(message)));
+                        break;
+                    case (int)JsonController.MSG_TYPE.dh:
+                        if (handshake_state_machine.MyState == HandshakeStateMachine.STATE.rcv_handshake)
+                        {
+                            if (json_controller.ParseFromFromJson(message) == handshake_state_machine.CurrentHandShaker)
+                            {
+                                handshake_state_machine.GetSharedSecret(json_controller.ParseBodyFromJson(message));
+                                byte[] shared_secret_bytes = handshake_state_machine.SharedSecretAsByte;
+                                string encoded = Convert.ToBase64String(shared_secret_bytes);
+                                Console.WriteLine("I recieved opponent's number. shared secret is " + encoded);
+                                handshake_state_machine.SetMyState_ToIdle();
+                            }
+                            else
+                            {
+                                Console.WriteLine("recieved message is not from the one who is handshaking with me. ignore this.");
+                            }
+                        }
+                        else if (handshake_state_machine.MyState == HandshakeStateMachine.STATE.idle)
+                        {
+                            Console.WriteLine("recieved handshake request.");
                             handshake_state_machine.SetMyState_ToSendHandShake();
-                            handshake_state_machine.GetSharedSecret(json_controller.ParseBodyFromJson(message));
-                            Console.WriteLine("I got handshake request.");
-                            break;
-                        case (int)JsonController.MSG_TYPE.sender_key :
-                            break;
-                        case (int)JsonController.MSG_TYPE.announce : 
-                            break;
-                    }
-
+                        }
+                        break;
+                    case (int)JsonController.MSG_TYPE.sender_key:
+                        break;
+                    case (int)JsonController.MSG_TYPE.announce:
+                        break;
                 }
+
             }
 
         }
@@ -129,11 +129,12 @@ namespace Communicator_ns
                 if (handshake_state_machine.MyState == HandshakeStateMachine.STATE.send_handshake)
                 {
                     line = json_controller.BuildJson(JsonController.MSG_TYPE.dh, nickname, handshake_state_machine.CurrentHandShaker, handshake_state_machine.MyBigNum);
+                    Console.WriteLine("sended" + line);
                     await sock.SendAsync(new ArraySegment<byte>(MakeBytesFormat(line)), SocketFlags.None);
-                    if (handshake_state_machine.SharedSecret == "0")
+                    if (handshake_state_machine.SharedSecretAsString == "0")
                     {
                         handshake_state_machine.SetMyState_ToRcvHandShake();
-                        Console.WriteLine("I sent my number and waiting for opponent's number");
+                        Console.WriteLine("waiting for opponent's number");
                     }
                     else
                     {

@@ -1,13 +1,14 @@
-﻿using System;
+﻿using HandshakeStateMachine_ns;
+using JsonController_ns;
+using ServerConnector_ns;
+
+using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Numerics;
 using System.Security.Cryptography;
-
-using ServerConnector_ns;
-using HandshakeStateMachine_ns;
-using JsonController_ns;
+using System.Text;
+using System.Threading.Channels;
 
 namespace Communicator_ns
 {
@@ -17,14 +18,24 @@ namespace Communicator_ns
         protected readonly HandshakeStateMachine_ns.HandshakeStateMachine handshake_state_machine;
         protected readonly JsonController_ns.JsonController json_controller;
         protected readonly Socket sock;
+        protected readonly string nickname;
+        protected readonly SemaphoreSlim state_semaphore;
+        public enum SEND_TYPE { rcv_first, send_frist }
+        protected Channel<SEND_TYPE> key_exchange_queue;
         public Communicator(ServerConnector_ns.ServerConnector sc,
             HandshakeStateMachine_ns.HandshakeStateMachine hs,
-            JsonController_ns.JsonController jp)
+            JsonController_ns.JsonController jp,
+            string nickname,
+            SemaphoreSlim ss,
+            Channel<SEND_TYPE> keq)
         {
             server_connector = sc;
             handshake_state_machine = hs;
             sock = server_connector.Sock;
             json_controller = jp;
+            this.nickname = nickname;
+            state_semaphore = ss;
+            key_exchange_queue = keq;
         }
     }
 
@@ -32,13 +43,16 @@ namespace Communicator_ns
     {
         public Reciever(ServerConnector_ns.ServerConnector sc,
             HandshakeStateMachine_ns.HandshakeStateMachine hs,
-            JsonController_ns.JsonController jp) : base(sc, hs, jp)
+            JsonController_ns.JsonController jp,
+            string nickname,
+            SemaphoreSlim ss,
+            Channel<SEND_TYPE> keq) : base(sc, hs, jp, nickname, ss, keq)
         { }
 
         public async Task LoopRecieveAsync(CancellationToken token)
         {
 
-            while (true)
+            while (!token.IsCancellationRequested)
             {
                 string message = await RecieveAsync();
                 Console.WriteLine("recieved" + message);
@@ -52,11 +66,16 @@ namespace Communicator_ns
                         {
                             if (json_controller.ParseFromFromJson(message) == handshake_state_machine.CurrentHandShaker)
                             {
-                                handshake_state_machine.GetSharedSecret(json_controller.ParseBodyFromJson(message));
-                                byte[] shared_secret_bytes = handshake_state_machine.SharedSecretAsByte;
-                                string encoded = Convert.ToBase64String(shared_secret_bytes);
-                                Console.WriteLine("I recieved opponent's number. shared secret is " + encoded);
-                                handshake_state_machine.SetMyState_ToIdle();
+                                Console.WriteLine("recieved answer of key exchange");
+                                //byte[] shared_secret_bytes = handshake_state_machine.SharedSecretAsByte;
+                                //Console.WriteLine("I recieved opponent's number. shared secret is " + Convert.ToBase64String(shared_secret_bytes));
+                                handshake_state_machine.OpponentBigNum = json_controller.ParseBodyFromJson(message);
+                                await state_semaphore.WaitAsync();
+                                try
+                                {
+                                    handshake_state_machine.SetMyState_ToIdle();
+                                }
+                                finally { state_semaphore.Release(); }
                             }
                             else
                             {
@@ -65,13 +84,46 @@ namespace Communicator_ns
                         }
                         else if (handshake_state_machine.MyState == HandshakeStateMachine.STATE.idle)
                         {
-                            Console.WriteLine("recieved handshake request.");
-                            handshake_state_machine.SetMyState_ToSendHandShake();
+                            Console.WriteLine("recieved request for me to handshake with opponent");
+                            handshake_state_machine.OpponentBigNum = json_controller.ParseBodyFromJson(message);
+                            await state_semaphore.WaitAsync();
+                            try
+                            {
+                                handshake_state_machine.CurrentHandShaker = json_controller.ParseFromFromJson(message);
+                                handshake_state_machine.SetMyState_ToSendHandShake();
+                            }
+                            finally { state_semaphore.Release(); }
+                            Console.WriteLine("since request recieved, trying queue added");
+                            await key_exchange_queue.Writer.WriteAsync(SEND_TYPE.rcv_first);
+                            Console.WriteLine("queue add succeed");
                         }
                         break;
                     case (int)JsonController.MSG_TYPE.sender_key:
+                        await state_semaphore.WaitAsync();
+                        try
+                        {
+                            HandshakeStateMachine.KEYS temp = handshake_state_machine.AccessData(json_controller.ParseFromFromJson(message));
+                            temp.sender_key = Encoding.UTF8.GetBytes(json_controller.ParseBodyFromJson(message));
+                            handshake_state_machine.ChangeData(json_controller.ParseFromFromJson(message), temp);
+                        }
+                        finally { state_semaphore.Release(); }
                         break;
                     case (int)JsonController.MSG_TYPE.announce:
+                        if (json_controller.ParseBodyFromJson(message) != nickname && handshake_state_machine.MyState == HandshakeStateMachine.STATE.idle)
+                        {
+                            await state_semaphore.WaitAsync();
+                            try
+                            {
+                                Console.WriteLine("I should talk to " + json_controller.ParseBodyFromJson(message));
+                                handshake_state_machine.CurrentHandShaker = json_controller.ParseBodyFromJson(message);
+                                Console.WriteLine("current handshaker is " + handshake_state_machine.CurrentHandShaker);
+                                handshake_state_machine.SetMyState_ToSendHandShake();
+                            }
+                            finally { state_semaphore.Release(); }
+                            Console.WriteLine("announcement. waiting for queue added");
+                            await key_exchange_queue.Writer.WriteAsync(SEND_TYPE.send_frist);
+                            Console.WriteLine("announcement. queue add succeed");
+                        }
                         break;
                 }
 
@@ -111,56 +163,97 @@ namespace Communicator_ns
 
     public class Sender : Communicator
     {
-        public readonly string nickname;
         public Sender(ServerConnector_ns.ServerConnector sc,
             HandshakeStateMachine_ns.HandshakeStateMachine hs,
             JsonController_ns.JsonController jp,
-            string nickname) : base(sc, hs, jp)
-
+            string nickname,
+            SemaphoreSlim ss,
+            Channel<SEND_TYPE> keq) : base(sc, hs, jp, nickname, ss, keq) 
         {
-            this.nickname = nickname;
+            Console.WriteLine("sender constructor. queue added");
         }
-
-        private string? line;
-        public async Task LoopSendAsync(CancellationToken token)
+        public async Task Init()
         {
-            while (true)
+            await key_exchange_queue.Writer.WriteAsync(SEND_TYPE.send_frist);
+        }
+        private readonly SemaphoreSlim sock_semaphore = new SemaphoreSlim(1, 1);
+        public async Task LoopInputAsync(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
             {
-                if (handshake_state_machine.MyState == HandshakeStateMachine.STATE.send_handshake)
+                string line = await Task.Run(() => Console.ReadLine());
+                if (string.IsNullOrEmpty(line)) continue;
+                if (line == "/quit")
                 {
-                    line = json_controller.BuildJson(JsonController.MSG_TYPE.dh, nickname, handshake_state_machine.CurrentHandShaker, handshake_state_machine.MyBigNum);
-                    Console.WriteLine("sended" + line);
-                    await sock.SendAsync(new ArraySegment<byte>(MakeBytesFormat(line)), SocketFlags.None);
-                    if (handshake_state_machine.SharedSecretAsString == "0")
-                    {
-                        handshake_state_machine.SetMyState_ToRcvHandShake();
-                        Console.WriteLine("waiting for opponent's number");
-                    }
-                    else
-                    {
-                        handshake_state_machine.SetMyState_ToIdle();
-                        Console.WriteLine("I'm the side who get handshake. I sended my number.");
-                    }
+                    await server_connector.CloseSockAsync();
+                    break;
                 }
                 else
                 {
-                    line = await Task.Run(() => Console.ReadLine());
-                    if (string.IsNullOrEmpty(line)) continue;
-                    if (line == "/quit")
+                    line = json_controller.BuildJson(JsonController.MSG_TYPE.message, nickname, "group", line);
+                    await sock_semaphore.WaitAsync();
+                    try
                     {
-                        await server_connector.CloseSockAsync();
-                        break;
-                    }
-                    else
-                    {
-                        line = json_controller.BuildJson(JsonController.MSG_TYPE.message, nickname, "group", line);
                         await sock.SendAsync(new ArraySegment<byte>(MakeBytesFormat(line)), SocketFlags.None);
                     }
-
+                    finally { sock_semaphore.Release(); }
                 }
             }
 
         }
+        public async Task LoopSendAsync(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                Console.WriteLine("ready to read something");
+                SEND_TYPE send_type = await key_exchange_queue.Reader.ReadAsync(token);
+                Console.WriteLine("key exchange queue got something");
+
+                if (handshake_state_machine.MyState == HandshakeStateMachine.STATE.send_handshake)
+                {
+                    string message;
+                    //Console.WriteLine("sended" + line);
+                    if (send_type == SEND_TYPE.send_frist)
+                    {
+                        message = json_controller.BuildJson
+                            (JsonController.MSG_TYPE.dh, nickname, handshake_state_machine.CurrentHandShaker, handshake_state_machine.MyBigNum);
+                        await state_semaphore.WaitAsync();
+                        try
+                        {
+                            handshake_state_machine.SetMyState_ToRcvHandShake();
+                        }
+                        finally { state_semaphore.Release(); }
+                        Console.WriteLine("waiting for opponent's number");
+                    }
+                    else
+                    {
+                        message = json_controller.BuildJson
+                           (JsonController.MSG_TYPE.dh, nickname, handshake_state_machine.CurrentHandShaker, handshake_state_machine.MyBigNum);
+                        await state_semaphore.WaitAsync();
+                        try
+                        {
+                            handshake_state_machine.SetMyState_ToIdle();
+                        }
+                        finally { state_semaphore.Release(); }
+                        Console.WriteLine("I'm the side who get handshake. I sended my number.");
+                    }
+                    await sock_semaphore.WaitAsync();
+                    try
+                    {
+                        await sock.SendAsync(new ArraySegment<byte>(MakeBytesFormat(message)), SocketFlags.None);
+                        Console.WriteLine("sended key exchange message");
+                    }
+                    finally { sock_semaphore.Release(); }
+                }
+                else
+                {
+                    Console.WriteLine("something is wrong. state is not send_handshake but got key_exchange_queue");
+                }
+
+            }
+
+        }
+
 
         private byte[] MakeBytesFormat(string input)
         {

@@ -26,13 +26,18 @@ namespace ClientRunner_ns
             CancellationTokenSource cts = new CancellationTokenSource();
             CancellationToken token = cts.Token;
 
+            //Console.WriteLine(sender == null ? "sender is null" : "sender is OK");
             Task recieve = reciever.LoopRecieveAsync(token);
-            Task send = sender.LoopSendAsync(token);
+            Console.WriteLine("Loop Recieve Async task built");
+            Task send_input = sender.LoopInputAsync(token);
+            Console.WriteLine("Loop Input Async task built");
+            Task send_system = sender.LoopSendAsync(token);
+            Console.WriteLine("Loop Send Async task built");
 
-            await Task.WhenAny(recieve, send);
+            await Task.WhenAny(recieve, send_system, send_input);
             cts.Cancel();
 
-            await Task.WhenAll(recieve, send);
+            await Task.WhenAll(recieve, send_system, send_input);
         }
     }
 }

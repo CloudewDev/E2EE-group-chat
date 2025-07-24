@@ -4,6 +4,7 @@
 #include "IOManager.h"
 #include "Client.h"
 
+#include <vector>
 #include <map>
 #include <memory>
 #include <string>
@@ -15,6 +16,8 @@ public:
     void addClient(int socket_fd);
     void removeClient(int client_socket_fd);
     void SetClientNickname(int client_sock_fd, std::string input_name);
+    void SetClientKey(int client_sock_fd, std::vector<unsigned char>&& input);
+    const std::vector<unsigned char>& GetClientKey(int client_sock_fd) const;
     void broadCastMsg(std::string message);
     void SendMsg(std::string to, std::string message);
 

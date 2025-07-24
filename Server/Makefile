@@ -12,7 +12,7 @@ OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^ ./include/gmp/lib/libgmp.a -lcrypto
+	$(CXX) $(CXXFLAGS) -o $@ $^ ./include/gmp/lib/libgmp.a -lssl -lcrypto
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@

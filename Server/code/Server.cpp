@@ -14,6 +14,8 @@
 #include <vector>
 #include <cstring>
 #include <string>
+#include <memory>
+
 
 Server::Server(Listener &ls, ClientManager &cm, IOepollManager &iem, Reciever& rv, JsonController& jc, DHCalculator& dc)
     : listener(ls),
@@ -42,48 +44,55 @@ void Server::run()
             {
                 std::string input_bytes_str = reciever.ReadNBytes(4, events.at(i).data.fd);
                 if (input_bytes_str == ""){
+                    client_manager.removeClient(events.at(i).data.fd);
                     // std::cout << "user disconnected" << std::endl;
                 
                 }
                 else{
                     int msg_length = 0;
-    
                     std::memcpy(&msg_length, input_bytes_str.data(), sizeof(int));
                     std::string recieved_data = reciever.ReadNBytes(msg_length, events.at(i).data.fd);
                     std::cout << "recieved " << recieved_data << std::endl;
+                    std::cout << "recieved some data" << std::endl;
                     
-                    if (json_controller.parseTypeFromJson(recieved_data) == 0
-                        && json_controller.parseToFromJson(recieved_data) == "group")
+                    if (json_controller.parseToFromJson(recieved_data) == "group")
                     {
                         client_manager.broadCastMsg(MakePacket(msg_length, recieved_data));
                     }
-                    else if (json_controller.parseTypeFromJson(recieved_data) == 1
-                            && json_controller.parseToFromJson(recieved_data) == "server")
-                    {
-                        std::string me = "server";
-                        std::string opponent = json_controller.parseFromFromJson(recieved_data);
-
-                        client_manager.SetClientNickname(events.at(i).data.fd, opponent);
-                        
-                        std::cout << "handshake requested from " << opponent << std::endl;
-                        std::string my_num = dh_calculator.SetMyNum();
-                        
-                        dh_calculator.CalculateSharedSecret(json_controller.parseBodyFromJson(recieved_data));
-
-                        std::string data_to_send = json_controller.buildJson(1, me, opponent, my_num);
-                        std::vector<char> shared_secret_byte;
-                        dh_calculator.GetShareSecretByte(shared_secret_byte);
-                        std::cout << "byte size is " << shared_secret_byte.size() << std::endl;
-
-                        unsigned char* temp = reinterpret_cast<unsigned char*>(shared_secret_byte.data());
-                        size_t temp_size = shared_secret_byte.size();
-                        std::string encoded_secret = dh_calculator.base64Encode(temp, temp_size);
-
-                        std::cout << "now sending " << data_to_send << std::endl;
-                        client_manager.SendMsg(opponent, MakePacket(data_to_send.size(), data_to_send));
-                        std::cout << "shared secret is " << encoded_secret << std::endl;
-
-                        
+                    else if (json_controller.parseToFromJson(recieved_data) == "server"){
+                        if (json_controller.parseTypeFromJson(recieved_data) == 1)
+                        {
+                            std::string me = "server";
+                            std::string opponent = json_controller.parseFromFromJson(recieved_data);
+    
+                            client_manager.SetClientNickname(events.at(i).data.fd, opponent);
+                            
+                            std::cout << "handshake requested from " << opponent << std::endl;
+                            std::string my_num = dh_calculator.SetMyNum();
+                            
+                            dh_calculator.CalculateSharedSecret(json_controller.parseBodyFromJson(recieved_data));
+                            client_manager.SetClientKey(events.at(i).data.fd, std::move(dh_calculator.GetKey()));
+                            
+                            // std::vector<unsigned char> shared_secret_byte;
+                            // dh_calculator.GetShareSecretByte(shared_secret_byte);
+                            // std::cout << "byte size is " << shared_secret_byte.size() << std::endl;
+                            
+                            // unsigned char* temp = reinterpret_cast<unsigned char*>(shared_secret_byte.data());
+                            // std::string encoded_secret = dh_calculator.base64Encode(temp, temp_size);
+                            
+                            // std::cout << "encoded key is " << 
+                            // dh_calculator.base64Encode(client_manager.GetClientKey(events.at(i).data.fd).data(), client_manager.GetClientKey(events.at(i).data.fd).size()) 
+                            // << std::endl;
+                            
+                            std::string data_to_send = json_controller.buildJson(1, me, opponent, my_num);
+                            std::cout << "now sending answer" << std::endl;
+                            client_manager.SendMsg(opponent, MakePacket(data_to_send.size(), data_to_send));
+                            // std::cout << "shared secret is " << encoded_secret << std::endl;
+                            std::string to = "group";
+                            std::string announcement = json_controller.buildJson(3, me, to, opponent);
+                            client_manager.broadCastMsg(MakePacket(announcement.size(), announcement));
+                            
+                        }
                     }
                     else{
                         client_manager.SendMsg(json_controller.parseToFromJson(recieved_data), MakePacket(msg_length, recieved_data));

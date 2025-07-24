@@ -8,6 +8,9 @@
 #include <openssl/bio.h>
 #include <openssl/evp.h>
 #include <openssl/buffer.h>
+#include <openssl/kdf.h>
+#include <system_error>
+#include <iostream>
 
 DHCalculator::DHCalculator(){
     Init();
@@ -38,13 +41,13 @@ void DHCalculator::CalculateSharedSecret(std::string input){
     mpz_powm(shared_secret, opponent_num, x, prime);
 }
 
-void DHCalculator::GetShareSecretByte(std::vector<char>& output){
+void DHCalculator::GetShareSecretByte(std::vector<unsigned char>& input){
     size_t guess_size = mpz_sizeinbase(shared_secret, 2) / 8 + 1;
-    output.resize(guess_size);
+    input.resize(guess_size);
 
     size_t count = 0;
-    mpz_export(output.data(), &count, -1, 1, 1, 0, shared_secret);
-    output.resize(count);
+    mpz_export(input.data(), &count, -1, 1, 1, 0, shared_secret);
+    input.resize(count);
 }
 
 std::string DHCalculator::base64Encode(const unsigned char* buffer, size_t length) {
@@ -66,4 +69,46 @@ std::string DHCalculator::base64Encode(const unsigned char* buffer, size_t lengt
     BIO_free_all(bio);
 
     return result;
+}
+
+std::vector<unsigned char> DHCalculator::GetKey(){
+    std::vector<unsigned char> shared_secret_as_byte;
+    GetShareSecretByte(shared_secret_as_byte);
+
+    size_t output_len = 64;
+    std::vector<unsigned char> okm(output_len);
+
+    EVP_PKEY_CTX* pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, nullptr);
+    if (!pctx) throw std::runtime_error("Failed to create HKDF context");
+
+    if (EVP_PKEY_derive_init(pctx) <= 0){
+        EVP_PKEY_CTX_free(pctx);
+        throw std::runtime_error("EVP_PKEY_derive_init failed");
+
+    }
+    if (EVP_PKEY_CTX_set_hkdf_md(pctx, EVP_sha256()) <= 0){
+        EVP_PKEY_CTX_free(pctx);
+        throw std::runtime_error("EVP_PKEY_CTX_set_hkdf_md failed");
+    }
+
+    // std::cout << "shared secret as byte size is " << shared_secret_as_byte.size() << std::endl;
+    if (EVP_PKEY_CTX_set1_hkdf_key(pctx, shared_secret_as_byte.data(), shared_secret_as_byte.size()) <= 0){
+        EVP_PKEY_CTX_free(pctx);
+        throw std::runtime_error("EVP_PKEY_CTX_set1_hkdf_key failed");
+    }
+    if (EVP_PKEY_CTX_set1_hkdf_salt(pctx, nullptr, 0) <= 0){
+        EVP_PKEY_CTX_free(pctx);
+        throw std::runtime_error("EVP_PKEY_CTX_set1_hkdf_salt failed");
+    }
+    if (EVP_PKEY_CTX_add1_hkdf_info(pctx, nullptr, 0) <= 0){
+        EVP_PKEY_CTX_free(pctx);
+        throw std::runtime_error("VP_PKEY_CTX_add1_hkdf_info failed");
+    }
+    if (EVP_PKEY_derive(pctx, okm.data(), &output_len) <= 0) {
+        EVP_PKEY_CTX_free(pctx);
+        throw std::runtime_error("HKDF derivation failed");
+    }
+
+    EVP_PKEY_CTX_free(pctx);
+    return okm;
 }

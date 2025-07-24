@@ -13,8 +13,9 @@ public:
     void Init();
     std::string SetMyNum();
     void CalculateSharedSecret(std::string input);
-    void GetShareSecretByte(std::vector<char>& output);
+    void GetShareSecretByte(std::vector<unsigned char>& input);
     std::string base64Encode(const unsigned char* buffer, size_t length);
+    std::vector<unsigned char> GetKey();
 
 private:
     std::string prime_str = "32317006071311007300714876688669951960444102669715484032"

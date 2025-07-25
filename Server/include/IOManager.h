@@ -9,6 +9,7 @@ public:
     IOepollManager(int listener_fd);
     
     void addToEpoll(int sock_fd);
+    void RemoveFromEpoll(int sock_fd);
 
     int watch();
 

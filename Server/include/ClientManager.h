@@ -21,10 +21,14 @@ public:
     void broadCastMsg(std::string message);
     void SendMsg(std::string to, std::string message);
 
+    std::string SockToName(int sock_Fd);
+    int NameToSock(std::string name);
+
 private:
     IOepollManager& io_epoll_manager;
     std::map<int, std::unique_ptr<Client>> client_map;
     std::map<std::string, int> name2sock_map;
+    std::map<int, std::string> sock2name_map;
 };
 
 #endif

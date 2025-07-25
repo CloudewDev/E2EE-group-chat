@@ -15,23 +15,23 @@
 int main(int argc, char *argv[]){
     try{
         Listener listener(atoi(argv[1]));
-        std::cout << "listener on" << std::endl;
+        std::cout << "[log]listener on" << std::endl;
         IOepollManager io_epoll_manager(listener.getSockFd());
-        std::cout << "epoll on" << std::endl;
+        std::cout << "[log]epoll on" << std::endl;
         ClientManager client_manager(io_epoll_manager);
-        std::cout << "client manager on" << std::endl;
+        std::cout << "[log]client manager on" << std::endl;
         JsonController jscon_controller;
-        std::cout << "json controller on" << std::endl;
+        std::cout << "[log]json controller on" << std::endl;
         Reciever reciever(jscon_controller);
-        std::cout << "reciever on" << std::endl;
+        std::cout << "[log]reciever on" << std::endl;
         DHCalculator dh_calculator;
-        std::cout << "DH calculator on" << std::endl;
+        std::cout << "[log]DH calculator on" << std::endl;
         Server server(listener, client_manager, io_epoll_manager, reciever, jscon_controller, dh_calculator);
 
         server.run();
     }
     catch (const std::system_error& e) {
-        std::cerr << "initialization failed: " << e.what() << " (Code: " << e.code() << ")\n";
+        std::cerr << "[log]initialization failed: " << e.what() << " (Code: " << e.code() << ")\n";
         return -1;
     }
     catch (const std::exception& e) {

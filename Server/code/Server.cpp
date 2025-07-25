@@ -15,6 +15,8 @@
 #include <cstring>
 #include <string>
 #include <memory>
+#include <openssl/evp.h>
+#include <openssl/rand.h>
 
 
 Server::Server(Listener &ls, ClientManager &cm, IOepollManager &iem, Reciever& rv, JsonController& jc, DHCalculator& dc)
@@ -33,6 +35,8 @@ void Server::run()
     {
         int event_counts = io_epoll_manager.watch();
         const std::vector<struct epoll_event> &events = io_epoll_manager.getEvents();
+        std::string me = "server";
+        std::string opponent;
 
         for (int i = 0; i < event_counts; i++)
         {
@@ -44,16 +48,18 @@ void Server::run()
             {
                 std::string input_bytes_str = reciever.ReadNBytes(4, events.at(i).data.fd);
                 if (input_bytes_str == ""){
+                    opponent = "group";
+                    // std::string data_to_send = json_controller.buildJson(4, me, opponent, my_num);
                     client_manager.removeClient(events.at(i).data.fd);
-                    // std::cout << "user disconnected" << std::endl;
+                    std::cout << "[log]user disconnected" << std::endl;
                 
                 }
                 else{
                     int msg_length = 0;
                     std::memcpy(&msg_length, input_bytes_str.data(), sizeof(int));
                     std::string recieved_data = reciever.ReadNBytes(msg_length, events.at(i).data.fd);
-                    std::cout << "recieved " << recieved_data << std::endl;
-                    std::cout << "recieved some data" << std::endl;
+                    std::cout << "[log]server recieved " << recieved_data << std::endl;
+                    // std::cout << "recieved some data" << std::endl;
                     
                     if (json_controller.parseToFromJson(recieved_data) == "group")
                     {
@@ -62,12 +68,11 @@ void Server::run()
                     else if (json_controller.parseToFromJson(recieved_data) == "server"){
                         if (json_controller.parseTypeFromJson(recieved_data) == 1)
                         {
-                            std::string me = "server";
                             std::string opponent = json_controller.parseFromFromJson(recieved_data);
     
                             client_manager.SetClientNickname(events.at(i).data.fd, opponent);
                             
-                            std::cout << "handshake requested from " << opponent << std::endl;
+                            std::cout << "[log]handshake requested from " << opponent << std::endl;
                             std::string my_num = dh_calculator.SetMyNum();
                             
                             dh_calculator.CalculateSharedSecret(json_controller.parseBodyFromJson(recieved_data));
@@ -83,13 +88,13 @@ void Server::run()
                             // std::cout << "encoded key is " << 
                             // dh_calculator.base64Encode(client_manager.GetClientKey(events.at(i).data.fd).data(), client_manager.GetClientKey(events.at(i).data.fd).size()) 
                             // << std::endl;
-                            
-                            std::string data_to_send = json_controller.buildJson(1, me, opponent, my_num);
+                            std::string temp = "";
+                            std::string data_to_send = json_controller.buildJson(1, me, opponent, my_num, temp);
                             std::cout << "now sending answer" << std::endl;
                             client_manager.SendMsg(opponent, MakePacket(data_to_send.size(), data_to_send));
                             // std::cout << "shared secret is " << encoded_secret << std::endl;
                             std::string to = "group";
-                            std::string announcement = json_controller.buildJson(3, me, to, opponent);
+                            std::string announcement = json_controller.buildJson(3, me, to, opponent, temp);
                             client_manager.broadCastMsg(MakePacket(announcement.size(), announcement));
                             
                         }
@@ -130,4 +135,40 @@ std::string Server::MakePacket(int size, std::string message_to_sennd){
     std::memcpy(packet.data() + 4, message_to_sennd.data(), size);
     std::string data_to_send(packet.begin(), packet.end());
     return data_to_send;
+}
+
+std::vector<unsigned char> Server::encrypt(const unsigned char* plaintext, int plaintext_len,
+    const unsigned char* key, const unsigned char* iv)
+{
+    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+    std::vector<unsigned char> ciphertext(plaintext_len + EVP_MAX_BLOCK_LENGTH);
+    int len = 0, ciphertext_len = 0;
+
+    EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv);
+    EVP_EncryptUpdate(ctx, ciphertext.data(), &len, plaintext, plaintext_len);
+    ciphertext_len = len;
+    EVP_EncryptFinal_ex(ctx, ciphertext.data() + len, &len);
+    ciphertext_len += len;
+
+    EVP_CIPHER_CTX_free(ctx);
+    ciphertext.resize(ciphertext_len); // 잘라내기
+    return ciphertext;
+}
+
+std::vector<unsigned char> Server::decrypt(const unsigned char* ciphertext, int ciphertext_len,
+    const unsigned char* key, const unsigned char* iv)
+{
+    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+    std::vector<unsigned char> plaintext(ciphertext_len); // same size or bigger
+    int len = 0, plaintext_len = 0;
+
+    EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv);
+    EVP_DecryptUpdate(ctx, plaintext.data(), &len, ciphertext, ciphertext_len);
+    plaintext_len = len;
+    EVP_DecryptFinal_ex(ctx, plaintext.data() + len, &len);
+    plaintext_len += len;
+
+    EVP_CIPHER_CTX_free(ctx);
+    plaintext.resize(plaintext_len); // 잘라내기
+    return plaintext;
 }

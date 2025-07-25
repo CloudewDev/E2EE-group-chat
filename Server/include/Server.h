@@ -9,6 +9,9 @@
 #include "DHCalculator.h"
 
 #include <string>
+#include <openssl/evp.h>
+#include <openssl/rand.h>
+#include <cstring>
 
 
 class Server{
@@ -25,7 +28,10 @@ private:
 
     void setup_client(int listener_fd);
     std::string MakePacket(int size, std::string message_to_sennd);
-
+    std::vector<unsigned char> encrypt(const unsigned char* plaintext, int plaintext_len,
+        const unsigned char* key, const unsigned char* iv);
+    std::vector<unsigned char> decrypt(const unsigned char* ciphertext, int ciphertext_len,
+        const unsigned char* key, const unsigned char* iv);
 
 };
 

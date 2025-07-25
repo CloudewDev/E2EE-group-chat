@@ -20,6 +20,10 @@ void IOepollManager::addToEpoll(int sock_fd)
     }
 }
 
+void IOepollManager::RemoveFromEpoll(int sock_fd){
+    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, sock_fd, nullptr);
+}
+
 int IOepollManager::watch()
 {
     event_counts = epoll_wait(epoll_fd, events.data(), MAX_EVENTS, -1);

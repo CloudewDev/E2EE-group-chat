@@ -1,22 +1,22 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Numerics;
 using System.Security.Cryptography;
 
 using DHShare_ns;
-
+using Ratchet_ns;
 
 namespace HandshakeStateMachine_ns
 {
 	public class HandshakeStateMachine
 	{
-		private DHShare dh_share;
-		public HandshakeStateMachine(DHShare ds) 
+		private readonly DHShare dh_share;
+		private readonly Ratchet ratchet;
+		public HandshakeStateMachine(DHShare ds, Ratchet rc) 
 		{ 
 			dh_share = ds;
+			ratchet = rc;
 		}
-		public enum STATE {idle, send_handshake, rcv_handshake};
+		public enum STATE {idle, send_dh, rcved_dh, waiting_for_rcv_dh};
 		private string? current_handshaker = "server";
 		public string CurrentHandShaker { get { return current_handshaker; } set { current_handshaker = value; } }
 		private STATE my_state = STATE.idle;
@@ -37,61 +37,44 @@ namespace HandshakeStateMachine_ns
 			opponent_bignum = 0;
 			shared_secret = 0;
             my_state = STATE.idle;
-            Console.WriteLine("state changed as idle");
+            Console.WriteLine("[log]handshake state changed as idle");
         }
-		public void SetMyState_ToSendHandShake()
+		public void SetMyState_ToSendDH()
 		{
 			if (MyBigNum == "0")
 			{
 				my_bignum = dh_share.MakeMyNum();
 			}
-			my_state = STATE.send_handshake;
-			Console.WriteLine("state changed as send handshake");
+			my_state = STATE.send_dh;
+			Console.WriteLine("[log]handshake state changed as send DH");
         }
-		public void SetMyState_ToRcvHandShake()
+		public void SetMyState_ToRcvedDH()
 		{
             if (MyBigNum == "0")
             {
                 my_bignum = dh_share.MakeMyNum();
             }
-            my_state = STATE.rcv_handshake;
-            Console.WriteLine("state changed as rcv handshake");
+            my_state = STATE.rcved_dh;
+            Console.WriteLine("[log]handshake state changed as rcved DH");
         }
+
+		public void SetMyState_ToWaitingForRcvDH()
+		{
+			my_state = STATE.waiting_for_rcv_dh;
+			Console.WriteLine("[log]handshake state changed as waiting for rcv DH");
+		}
 
 		public void GetSharedSecret()
 		{
             shared_secret = dh_share.GetSharedSecret(opponent_bignum);
             byte[] deriven_key = HKDF.DeriveKey(HashAlgorithmName.SHA256, shared_secret.ToByteArray(), 64); //0 ~ 31 is root key, 32 ~ 64 is encryption key
-            KEYS keys = new KEYS();
+			Ratchet.KEYS keys = ratchet.MakeNewKey();
             keys.session_key = deriven_key;
-            AddData(current_handshaker, keys);
+            ratchet.AddData(current_handshaker, keys);
 			Console.WriteLine("encoded key is " + Convert.ToBase64String(deriven_key));
         }
 
 
-		public struct KEYS
-		{
-			public byte[] session_key;
-			public byte[] sender_key;
-		}
-		private Dictionary<string, KEYS> whoNkey_dic = new Dictionary<string, KEYS>();
-
-		public void AddData(string who, KEYS data)
-		{
-            whoNkey_dic.Add(who, data);
-        }
-		public void ChangeData(string who, KEYS data)
-		{
-            whoNkey_dic[who] = data;
-		}
-        public void RemoveData(string who)
-        {
-            whoNkey_dic.Remove(who);
-        }
-		public KEYS AccessData(string who)
-		{
-			return whoNkey_dic[who];
-		}
     }
 
 }

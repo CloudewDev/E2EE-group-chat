@@ -28,16 +28,19 @@ namespace ClientRunner_ns
 
             //Console.WriteLine(sender == null ? "sender is null" : "sender is OK");
             Task recieve = reciever.LoopRecieveAsync(token);
-            Console.WriteLine("Loop Recieve Async task built");
+            Console.WriteLine("[log]Loop Recieve Async task built");
             Task send_input = sender.LoopInputAsync(token);
-            Console.WriteLine("Loop Input Async task built");
-            Task send_system = sender.LoopSendAsync(token);
-            Console.WriteLine("Loop Send Async task built");
+            Console.WriteLine("[log]Loop Input Async task built");
+            Task send_handshake = sender.LoopHandshakeAsync(token);
+            Console.WriteLine("[log]Loop Handshake Async task built");
+            Task send_senderkey = sender.LoopSenderAsync(token);
+            Console.WriteLine("[log]Loop Sender Async task built");
 
-            await Task.WhenAny(recieve, send_system, send_input);
+            await Task.WhenAny(recieve, send_input, send_handshake, send_senderkey);
             cts.Cancel();
 
-            await Task.WhenAll(recieve, send_system, send_input);
+            await Task.WhenAll(recieve, send_input, send_handshake, send_senderkey);
+            server_connector.CloseSockAsync();
         }
     }
 }

@@ -25,14 +25,14 @@ namespace ServerConnector_ns
 			IPEndPoint clientEP = new IPEndPoint(serverAddr, int.Parse(port));
 			await sock.ConnectAsync(clientEP);
 			Console.WriteLine("Connection Seccess");
-			handshake_state_machine.SetMyState_ToSendHandShake();
+			handshake_state_machine.SetMyState_ToSendDH();
 		}
 
-		public async Task CloseSockAsync()
+		public void CloseSockAsync()
 		{
 			Console.WriteLine("Closisng Connection");
-			await sock.DisconnectAsync(false);
-			sock.Dispose();
+			sock.Shutdown(SocketShutdown.Both);
+            sock.Dispose();
 		}
 	}
 

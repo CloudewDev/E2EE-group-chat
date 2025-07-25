@@ -4,6 +4,9 @@ using DHShare_ns;
 using HandshakeStateMachine_ns;
 using JsonController_ns;
 using ServerConnector_ns;
+using Ratchet_ns;
+
+
 using System;
 using System.Threading.Channels;
 
@@ -22,16 +25,26 @@ class Program
             while (string.IsNullOrWhiteSpace(nickname.Trim()));
 
             DHShare_ns.DHShare dh_share = new DHShare_ns.DHShare();
-            HandshakeStateMachine_ns.HandshakeStateMachine handshake_state_machine = new HandshakeStateMachine_ns.HandshakeStateMachine(dh_share);
+            Ratchet_ns.Ratchet ratchet = new Ratchet_ns.Ratchet();
+            HandshakeStateMachine_ns.HandshakeStateMachine handshake_state_machine = new HandshakeStateMachine_ns.HandshakeStateMachine(dh_share, ratchet);
+
             ServerConnector_ns.ServerConnector server_connector = new ServerConnector_ns.ServerConnector(handshake_state_machine);
             await server_connector.Init(args[0], args[1]);
 
             JsonController_ns.JsonController json_controller = new JsonController_ns.JsonController();
+
+            Channel<Communicator_ns.Communicator.SEND_TYPE> dh_exchange_queue = Channel.CreateBounded<Communicator_ns.Communicator.SEND_TYPE>(1);
             Channel<Communicator_ns.Communicator.SEND_TYPE> key_exchange_queue = Channel.CreateBounded<Communicator_ns.Communicator.SEND_TYPE>(1);
             SemaphoreSlim state_semaphore = new SemaphoreSlim(1, 1);
-            Communicator_ns.Sender sender = new Sender(server_connector, handshake_state_machine, json_controller, nickname, state_semaphore, key_exchange_queue);
+            SemaphoreSlim ratchet_semaphore = new SemaphoreSlim(1, 1);
+
+            Communicator_ns.Sender sender = new Sender(server_connector, handshake_state_machine, json_controller, ratchet, 
+                nickname, state_semaphore, ratchet_semaphore, dh_exchange_queue, key_exchange_queue);
             await sender.Init();
-            Communicator_ns.Reciever reciever = new Reciever(server_connector, handshake_state_machine, json_controller, nickname, state_semaphore, key_exchange_queue);
+
+            Communicator_ns.Reciever reciever = new Reciever(server_connector, handshake_state_machine, json_controller, ratchet,
+                nickname, state_semaphore, ratchet_semaphore, dh_exchange_queue, key_exchange_queue);
+
             ClientRunner_ns.ClientRunner client_runner = new ClientRunner_ns.ClientRunner(server_connector, sender, reciever);
 
             await client_runner.Run();

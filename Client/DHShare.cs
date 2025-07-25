@@ -34,15 +34,13 @@ namespace DHShare_ns
         {
             byte[] bytes = prime.ToByteArray();
             BigInteger R;
-            RandomNumberGenerator r = RandomNumberGenerator.Create();
-
+            using RandomNumberGenerator r = RandomNumberGenerator.Create();
             do
             {
                 r.GetBytes(bytes);
                 bytes[bytes.Length - 1] &= (byte)0x7F; //force sign bit to positive
                 R = new BigInteger(bytes);
             } while (R > prime - 1);
-
             return R;
         }
     }

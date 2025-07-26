@@ -18,8 +18,9 @@ public:
     void SetClientNickname(int client_sock_fd, std::string input_name);
     void SetClientKey(int client_sock_fd, std::vector<unsigned char>&& input);
     const std::vector<unsigned char>& GetClientKey(int client_sock_fd) const;
-    void broadCastMsg(std::string message);
+    void broadCastMsg(int sock_fd, std::string message);
     void SendMsg(std::string to, std::string message);
+    const std::map<int, std::unique_ptr<Client>>& GetSockToClientMap() const;
 
     std::string SockToName(int sock_Fd);
     int NameToSock(std::string name);

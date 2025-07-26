@@ -91,7 +91,6 @@ std::vector<unsigned char> DHCalculator::GetKey(){
         throw std::runtime_error("EVP_PKEY_CTX_set_hkdf_md failed");
     }
 
-    // std::cout << "shared secret as byte size is " << shared_secret_as_byte.size() << std::endl;
     if (EVP_PKEY_CTX_set1_hkdf_key(pctx, shared_secret_as_byte.data(), shared_secret_as_byte.size()) <= 0){
         EVP_PKEY_CTX_free(pctx);
         throw std::runtime_error("EVP_PKEY_CTX_set1_hkdf_key failed");

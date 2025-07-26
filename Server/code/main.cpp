@@ -20,13 +20,14 @@ int main(int argc, char *argv[]){
         std::cout << "[log]epoll on" << std::endl;
         ClientManager client_manager(io_epoll_manager);
         std::cout << "[log]client manager on" << std::endl;
-        JsonController jscon_controller;
+        JsonController json_controller;
         std::cout << "[log]json controller on" << std::endl;
-        Reciever reciever(jscon_controller);
+        Sender sender(json_controller);
+        Reciever reciever(json_controller);
         std::cout << "[log]reciever on" << std::endl;
         DHCalculator dh_calculator;
         std::cout << "[log]DH calculator on" << std::endl;
-        Server server(listener, client_manager, io_epoll_manager, reciever, jscon_controller, dh_calculator);
+        Server server(listener, client_manager, io_epoll_manager, sender, reciever, json_controller, dh_calculator);
 
         server.run();
     }

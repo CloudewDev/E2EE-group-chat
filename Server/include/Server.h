@@ -16,23 +16,19 @@
 
 class Server{
 public:
-    Server(Listener& ls, ClientManager& cm, IOepollManager& iem, Reciever& rc, JsonController& jc, DHCalculator& dc);
+    Server(Listener& ls, ClientManager& cm, IOepollManager& iem, Sender& sd, Reciever& rc, JsonController& jc, DHCalculator& dc);
     void run();
 private:
     Listener& listener;
     ClientManager& client_manager; 
     IOepollManager& io_epoll_manager;
+    Sender& sender;
     Reciever& reciever;
     JsonController& json_controller;
     DHCalculator& dh_calculator;
 
     void setup_client(int listener_fd);
-    std::string MakePacket(int size, std::string message_to_sennd);
-    std::vector<unsigned char> encrypt(const unsigned char* plaintext, int plaintext_len,
-        const unsigned char* key, const unsigned char* iv);
-    std::vector<unsigned char> decrypt(const unsigned char* ciphertext, int ciphertext_len,
-        const unsigned char* key, const unsigned char* iv);
-
+    void EncryptAndBroadcast(int type, int change_sock_fd, std::string me);
 };
 
 #endif

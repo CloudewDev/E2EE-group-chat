@@ -11,7 +11,7 @@ public:
     int getSockFd() const;
 
     std::string GetName();
-    void SetName(std::string& input);
+    void SetName(std::string input);
     const std::vector<unsigned char>& GetKey() const;
     void SetKey(std::vector<unsigned char>&& input);
 private:

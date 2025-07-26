@@ -12,6 +12,7 @@
 #include <iostream>
 #include <arpa/inet.h>
 #include <vector>
+#include <map>
 #include <cstring>
 #include <string>
 #include <memory>
@@ -19,13 +20,14 @@
 #include <openssl/rand.h>
 
 
-Server::Server(Listener &ls, ClientManager &cm, IOepollManager &iem, Reciever& rv, JsonController& jc, DHCalculator& dc)
+Server::Server(Listener &ls, ClientManager &cm, IOepollManager &iem, Sender& sd, Reciever& rv, JsonController& jc, DHCalculator& dc)
     : listener(ls),
-      client_manager(cm),
-      io_epoll_manager(iem),
-      reciever(rv),
-      json_controller(jc),
-      dh_calculator(dc) {}
+    client_manager(cm),
+    io_epoll_manager(iem),
+    sender(sd),    
+    reciever(rv),
+    json_controller(jc),
+    dh_calculator(dc) {}
 
 void Server::run()
 {   
@@ -35,9 +37,8 @@ void Server::run()
     {
         int event_counts = io_epoll_manager.watch();
         const std::vector<struct epoll_event> &events = io_epoll_manager.getEvents();
-        std::string me = "server";
         std::string opponent;
-
+        
         for (int i = 0; i < event_counts; i++)
         {
             if (events.at(i).data.fd == listener.getSockFd())
@@ -46,24 +47,25 @@ void Server::run()
             }
             else
             {
+                std::string me = "server";
                 std::string input_bytes_str = reciever.ReadNBytes(4, events.at(i).data.fd);
+
                 if (input_bytes_str == ""){
-                    opponent = "group";
-                    // std::string data_to_send = json_controller.buildJson(4, me, opponent, my_num);
+                    std::cout << "[log]announcing group to someone exited" << std::endl;
+                    EncryptAndBroadcast(4, events.at(i).data.fd, me);
+                    std::cout << "[log]user "  << client_manager.SockToName(events.at(i).data.fd) << " disconnected" << std::endl;
                     client_manager.removeClient(events.at(i).data.fd);
-                    std::cout << "[log]user disconnected" << std::endl;
-                
+
                 }
                 else{
                     int msg_length = 0;
                     std::memcpy(&msg_length, input_bytes_str.data(), sizeof(int));
                     std::string recieved_data = reciever.ReadNBytes(msg_length, events.at(i).data.fd);
                     std::cout << "[log]server recieved " << recieved_data << std::endl;
-                    // std::cout << "recieved some data" << std::endl;
                     
                     if (json_controller.parseToFromJson(recieved_data) == "group")
                     {
-                        client_manager.broadCastMsg(MakePacket(msg_length, recieved_data));
+                        client_manager.broadCastMsg(events.at(i).data.fd, sender.MakePacket(msg_length, recieved_data));
                     }
                     else if (json_controller.parseToFromJson(recieved_data) == "server"){
                         if (json_controller.parseTypeFromJson(recieved_data) == 1)
@@ -78,29 +80,19 @@ void Server::run()
                             dh_calculator.CalculateSharedSecret(json_controller.parseBodyFromJson(recieved_data));
                             client_manager.SetClientKey(events.at(i).data.fd, std::move(dh_calculator.GetKey()));
                             
-                            // std::vector<unsigned char> shared_secret_byte;
-                            // dh_calculator.GetShareSecretByte(shared_secret_byte);
-                            // std::cout << "byte size is " << shared_secret_byte.size() << std::endl;
-                            
-                            // unsigned char* temp = reinterpret_cast<unsigned char*>(shared_secret_byte.data());
-                            // std::string encoded_secret = dh_calculator.base64Encode(temp, temp_size);
-                            
-                            // std::cout << "encoded key is " << 
-                            // dh_calculator.base64Encode(client_manager.GetClientKey(events.at(i).data.fd).data(), client_manager.GetClientKey(events.at(i).data.fd).size()) 
-                            // << std::endl;
                             std::string temp = "";
                             std::string data_to_send = json_controller.buildJson(1, me, opponent, my_num, temp);
-                            std::cout << "now sending answer" << std::endl;
-                            client_manager.SendMsg(opponent, MakePacket(data_to_send.size(), data_to_send));
-                            // std::cout << "shared secret is " << encoded_secret << std::endl;
+                            std::cout << "[log]now sending handshake respond" << std::endl;
+                            client_manager.SendMsg(opponent, sender.MakePacket(data_to_send.size(), data_to_send));
+
                             std::string to = "group";
-                            std::string announcement = json_controller.buildJson(3, me, to, opponent, temp);
-                            client_manager.broadCastMsg(MakePacket(announcement.size(), announcement));
+                            std::cout << "[log]announcing group to someone entered" << std::endl;
+                            EncryptAndBroadcast(3, events.at(i).data.fd, me);
                             
                         }
                     }
-                    else{
-                        client_manager.SendMsg(json_controller.parseToFromJson(recieved_data), MakePacket(msg_length, recieved_data));
+                    else{ // 1:1 handshake
+                        client_manager.SendMsg(json_controller.parseToFromJson(recieved_data), sender.MakePacket(msg_length, recieved_data));
                     }
 
                 }
@@ -128,47 +120,32 @@ void Server::setup_client(int listener_fd)
     }
 }
 
-std::string Server::MakePacket(int size, std::string message_to_sennd){
-    int lengthNetworkOrder = htonl(size);
-    std::vector<char> packet(4 + size);
-    std::memcpy(packet.data(), &lengthNetworkOrder, 4);
-    std::memcpy(packet.data() + 4, message_to_sennd.data(), size);
-    std::string data_to_send(packet.begin(), packet.end());
-    return data_to_send;
-}
-
-std::vector<unsigned char> Server::encrypt(const unsigned char* plaintext, int plaintext_len,
-    const unsigned char* key, const unsigned char* iv)
+void Server::EncryptAndBroadcast(int type, int change_sock_fd, std::string me)
 {
-    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-    std::vector<unsigned char> ciphertext(plaintext_len + EVP_MAX_BLOCK_LENGTH);
-    int len = 0, ciphertext_len = 0;
+    unsigned char iv[16];
+    if (RAND_bytes(iv, sizeof(iv)) != 1) {
+        throw std::runtime_error("RAND_bytes failed");
+    }
 
-    EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv);
-    EVP_EncryptUpdate(ctx, ciphertext.data(), &len, plaintext, plaintext_len);
-    ciphertext_len = len;
-    EVP_EncryptFinal_ex(ctx, ciphertext.data() + len, &len);
-    ciphertext_len += len;
+    std::string body = client_manager.SockToName(change_sock_fd);
+    std::vector<unsigned char> message(body.begin(), body.end());
+    const std::map<int, std::unique_ptr<Client>> &clients = client_manager.GetSockToClientMap();
 
-    EVP_CIPHER_CTX_free(ctx);
-    ciphertext.resize(ciphertext_len); // 잘라내기
-    return ciphertext;
-}
-
-std::vector<unsigned char> Server::decrypt(const unsigned char* ciphertext, int ciphertext_len,
-    const unsigned char* key, const unsigned char* iv)
-{
-    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-    std::vector<unsigned char> plaintext(ciphertext_len); // same size or bigger
-    int len = 0, plaintext_len = 0;
-
-    EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv);
-    EVP_DecryptUpdate(ctx, plaintext.data(), &len, ciphertext, ciphertext_len);
-    plaintext_len = len;
-    EVP_DecryptFinal_ex(ctx, plaintext.data() + len, &len);
-    plaintext_len += len;
-
-    EVP_CIPHER_CTX_free(ctx);
-    plaintext.resize(plaintext_len); // 잘라내기
-    return plaintext;
+    for (const auto &[fd, client_ptr] : clients)
+    {
+        if (fd == change_sock_fd) continue;
+        std::string opponent = client_ptr->GetName();
+        std::vector<unsigned char> key_data = client_manager.GetClientKey(fd);
+        std::vector<unsigned char> key(key_data.begin(), key_data.begin() + 32);
+        
+        std::vector<unsigned char> encrypted_msg = sender.encrypt(message.data(), message.size(), key.data(), iv);
+        
+        std::string body_to_send = dh_calculator.base64Encode(encrypted_msg.data(), encrypted_msg.size());
+        
+        std::string iv_to_send = dh_calculator.base64Encode(iv, 16);
+        std::string data_to_send = json_controller.buildJson(type, me, opponent, body_to_send, iv_to_send);
+        
+        std::cout << "[log]sent" << data_to_send << std::endl;
+        client_manager.SendMsg(opponent, sender.MakePacket(data_to_send.size(), data_to_send));
+    }
 }

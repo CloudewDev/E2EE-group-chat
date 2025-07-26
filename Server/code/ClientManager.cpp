@@ -14,8 +14,11 @@ ClientManager::ClientManager(IOepollManager& io_epoll_manager) :
     io_epoll_manager(io_epoll_manager) {}
 
 void ClientManager::addClient(int socket_fd){
-    std::unique_ptr<Client> client_ptr = std::make_unique<Client>(socket_fd);
-    client_map[client_ptr->getSockFd()] = std::move(client_ptr);
+    if (client_map.count(socket_fd) == 1) {
+        std::cerr << "[warn] Duplicate client for fd " << socket_fd << "\n";
+        return;
+    }
+    client_map.emplace(socket_fd, std::make_unique<Client>(socket_fd));
     io_epoll_manager.addToEpoll(socket_fd);
 }
 
@@ -28,7 +31,7 @@ void ClientManager::removeClient(int client_socket_fd){
 }
 
 void ClientManager::SetClientNickname(int client_socket_fd, std::string input_name){
-    client_map[client_socket_fd]->GetName() = input_name;
+    client_map[client_socket_fd]->SetName(input_name);
     name2sock_map[input_name] = client_socket_fd;
     sock2name_map[client_socket_fd] = input_name;
 }
@@ -40,15 +43,23 @@ const std::vector<unsigned char>& ClientManager::GetClientKey(int client_sock_fd
     return client_map.at(client_sock_fd) -> GetKey();
 }
 
-void ClientManager::broadCastMsg(std::string message){
+void ClientManager::broadCastMsg(int sock_fd, std::string message){
     for (auto iter = client_map.begin(); iter != client_map.end(); iter++)
     {
-        write(iter->first, message.c_str(), message.length());
+        if (iter -> first != sock_fd){
+
+            write(iter->first, message.c_str(), message.length());
+        }
     }
 }
 
 void ClientManager::SendMsg(std::string to, std::string message){
-    write(name2sock_map[to], message.c_str(), message.length());
+    if (name2sock_map.count(to) == 0){
+        std::cout << "[warn]input name doesn't exist. input name : " << to << std::endl;
+    }
+    else{
+        write(name2sock_map[to], message.c_str(), message.length());
+    }
 }
 
 std::string ClientManager::SockToName(int sock_Fd){
@@ -56,4 +67,8 @@ std::string ClientManager::SockToName(int sock_Fd){
 }
 int ClientManager::NameToSock(std::string name){
     return name2sock_map[name];
+}
+
+const std::map<int, std::unique_ptr<Client>>& ClientManager::GetSockToClientMap() const{
+    return client_map;
 }

@@ -14,7 +14,7 @@ int Client::getSockFd() const{
 std::string Client::GetName(){
     return nickname;
 }
-void Client::SetName(std::string& input){
+void Client::SetName(std::string input){
     nickname = input;
 }
 

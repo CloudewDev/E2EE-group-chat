@@ -13,19 +13,20 @@
 #include <openssl/rand.h>
 #include <cstring>
 
-
-class Server{
+class Server
+{
 public:
-    Server(Listener& ls, ClientManager& cm, IOepollManager& iem, Sender& sd, Reciever& rc, JsonController& jc, DHCalculator& dc);
+    Server(Listener &ls, ClientManager &cm, IOepollManager &iem, Sender &sd, Reciever &rc, JsonController &jc, DHCalculator &dc);
     void run();
+
 private:
-    Listener& listener;
-    ClientManager& client_manager; 
-    IOepollManager& io_epoll_manager;
-    Sender& sender;
-    Reciever& reciever;
-    JsonController& json_controller;
-    DHCalculator& dh_calculator;
+    Listener &listener;
+    ClientManager &client_manager;
+    IOepollManager &io_epoll_manager;
+    Sender &sender;
+    Reciever &reciever;
+    JsonController &json_controller;
+    DHCalculator &dh_calculator;
 
     void setup_client(int listener_fd);
     void EncryptAndBroadcast(int type, int change_sock_fd, std::string me);

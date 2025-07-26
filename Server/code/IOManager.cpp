@@ -1,4 +1,3 @@
-
 #include "IOManager.h"
 
 #include <unistd.h>
@@ -9,6 +8,7 @@ IOepollManager::IOepollManager(int listener_fd) : MAX_EVENTS(1024), events(MAX_E
 {
     setupEpoll(listener_fd);
 }
+
 void IOepollManager::addToEpoll(int sock_fd)
 {
     struct epoll_event client_event;
@@ -20,7 +20,8 @@ void IOepollManager::addToEpoll(int sock_fd)
     }
 }
 
-void IOepollManager::RemoveFromEpoll(int sock_fd){
+void IOepollManager::RemoveFromEpoll(int sock_fd)
+{
     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, sock_fd, nullptr);
 }
 

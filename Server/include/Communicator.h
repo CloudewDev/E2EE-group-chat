@@ -6,33 +6,36 @@
 #include <string>
 #include <vector>
 
-class Communicator{
+class Communicator
+{
 public:
-    Communicator(JsonController& jc);
+    Communicator(JsonController &jc);
 
 protected:
-    JsonController& json_controller;
+    JsonController &json_controller;
 };
 
-class Sender : Communicator{
+class Sender : Communicator
+{
 
 public:
-    Sender(JsonController& jc);
+    Sender(JsonController &jc);
     std::string MakePacket(int size, std::string message_to_sennd);
-    std::vector<unsigned char> encrypt(const unsigned char* plaintext, int plaintext_len,
-        const unsigned char* key, const unsigned char* iv);
-private:
+    std::vector<unsigned char> encrypt(const unsigned char *plaintext, int plaintext_len,
+                                       const unsigned char *key, const unsigned char *iv);
 
+private:
 };
 
-class Reciever : Communicator{
+class Reciever : Communicator
+{
 public:
-    Reciever(JsonController& jc);
+    Reciever(JsonController &jc);
     std::string ReadNBytes(int n, int sock);
-    std::vector<unsigned char> decrypt(const unsigned char* ciphertext, int ciphertext_len,
-        const unsigned char* key, const unsigned char* iv);
-private:
+    std::vector<unsigned char> decrypt(const unsigned char *ciphertext, int ciphertext_len,
+                                       const unsigned char *key, const unsigned char *iv);
 
+private:
 };
 
 #endif

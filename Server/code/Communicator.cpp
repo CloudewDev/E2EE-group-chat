@@ -8,13 +8,15 @@
 #include <cstring>
 #include <openssl/evp.h>
 
-Communicator::Communicator(JsonController& jc) 
+Communicator::Communicator(JsonController &jc)
     : json_controller(jc) {}
 
-Sender::Sender(JsonController& jc)
-    :Communicator(jc) {}
+Sender::Sender(JsonController &jc)
+    : Communicator(jc) {}
 
-std::string Sender::MakePacket(int size, std::string message_to_sennd){
+//measure the size of input message and add it as 4 bytes information
+std::string Sender::MakePacket(int size, std::string message_to_sennd)
+{
     int lengthNetworkOrder = htonl(size);
     std::vector<char> packet(4 + size);
     std::memcpy(packet.data(), &lengthNetworkOrder, 4);
@@ -22,10 +24,13 @@ std::string Sender::MakePacket(int size, std::string message_to_sennd){
     std::string data_to_send(packet.begin(), packet.end());
     return data_to_send;
 }
-std::vector<unsigned char> Sender::encrypt(const unsigned char* plaintext, int plaintext_len,
-    const unsigned char* key, const unsigned char* iv){
-    
-    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+
+//just typical use of AES256 cbc mode from encryption openssl
+std::vector<unsigned char> Sender::encrypt(const unsigned char *plaintext, int plaintext_len,
+                                           const unsigned char *key, const unsigned char *iv)
+{
+
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     std::vector<unsigned char> ciphertext(plaintext_len + EVP_MAX_BLOCK_LENGTH);
     int len = 0, ciphertext_len = 0;
 
@@ -40,22 +45,26 @@ std::vector<unsigned char> Sender::encrypt(const unsigned char* plaintext, int p
     return ciphertext;
 }
 
-Reciever::Reciever(JsonController& jc)
-    :Communicator(jc) {}
+Reciever::Reciever(JsonController &jc)
+    : Communicator(jc) {}
 
-std::string Reciever::ReadNBytes(int n, int sock){
+std::string Reciever::ReadNBytes(int n, int sock)
+{
 
     int current_read = 0;
     int bytes_read = 0;
     std::vector<char> buffer(n);
 
-    while (current_read < n){
+    while (current_read < n)
+    {
         bytes_read = read(sock, buffer.data(), n);
-        if (bytes_read <= 0){
-            return "";
+        if (bytes_read <= 0)
+        {
+            return ""; //which means socket disconnected. upper function which calls this function must handle this case
             break;
-        } 
-        else{
+        }
+        else
+        {
             current_read = current_read + bytes_read;
         }
     }
@@ -63,10 +72,12 @@ std::string Reciever::ReadNBytes(int n, int sock){
     return recieved_message;
 }
 
-std::vector<unsigned char> decrypt(const unsigned char* ciphertext, int ciphertext_len,
-    const unsigned char* key, const unsigned char* iv){
+//just typical use of AES256 cbc mode decryption from openssl
+std::vector<unsigned char> decrypt(const unsigned char *ciphertext, int ciphertext_len,
+                                   const unsigned char *key, const unsigned char *iv)
+{
 
-    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     std::vector<unsigned char> plaintext(ciphertext_len);
     int len = 0, plaintext_len = 0;
 

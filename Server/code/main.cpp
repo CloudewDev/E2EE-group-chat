@@ -11,35 +11,45 @@
 #include <cstdlib>
 #include <system_error>
 
-
-int main(int argc, char *argv[]){
-    try{
+int main(int argc, char *argv[])
+{
+    try
+    {
         Listener listener(atoi(argv[1]));
         std::cout << "[log]listener on" << std::endl;
+
         IOepollManager io_epoll_manager(listener.getSockFd());
         std::cout << "[log]epoll on" << std::endl;
+
         ClientManager client_manager(io_epoll_manager);
         std::cout << "[log]client manager on" << std::endl;
+
         JsonController json_controller;
         std::cout << "[log]json controller on" << std::endl;
+
         Sender sender(json_controller);
+        std::cout << "[log]sender on" << std::endl;
+
         Reciever reciever(json_controller);
         std::cout << "[log]reciever on" << std::endl;
+        
         DHCalculator dh_calculator;
         std::cout << "[log]DH calculator on" << std::endl;
+        
         Server server(listener, client_manager, io_epoll_manager, sender, reciever, json_controller, dh_calculator);
 
         server.run();
     }
-    catch (const std::system_error& e) {
+    catch (const std::system_error &e)
+    {
         std::cerr << "[log]initialization failed: " << e.what() << " (Code: " << e.code() << ")\n";
         return -1;
     }
-    catch (const std::exception& e) {
+    catch (const std::exception &e)
+    {
         std::cerr << "error: " << e.what() << "\n";
         return -1;
     }
 
-	return 0;
-
+    return 0;
 }

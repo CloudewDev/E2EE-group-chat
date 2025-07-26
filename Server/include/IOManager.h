@@ -4,16 +4,17 @@
 #include <vector>
 #include <sys/epoll.h>
 
-class IOepollManager{
+class IOepollManager
+{
 public:
     IOepollManager(int listener_fd);
-    
+
     void addToEpoll(int sock_fd);
     void RemoveFromEpoll(int sock_fd);
 
     int watch();
 
-    const std::vector<struct epoll_event>& getEvents () const;
+    const std::vector<struct epoll_event> &getEvents() const;
 
 private:
     int epoll_fd;

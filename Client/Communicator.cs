@@ -10,6 +10,7 @@ using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Channels;
+using System.Runtime.CompilerServices;
 
 namespace Communicator_ns
 {
@@ -68,11 +69,11 @@ namespace Communicator_ns
             while (!token.IsCancellationRequested)
             {
                 string message = await RecieveAsync(token);
-                Console.WriteLine("[log]recieved \n" + message);
+                Console.WriteLine("[log]recieved :" + message);
                 switch (json_controller.ParseTypeFromJson(message))
                 {
                     case (int)JsonController.MSG_TYPE.message:
-                        Console.ForegroundColor = ConsoleColor.DarkRed;
+                        Console.ForegroundColor = ConsoleColor.Green;
                         await Task.Run(() =>
                         Console.WriteLine(
                                     json_controller.ParseFromFromJson(message) 
@@ -149,14 +150,23 @@ namespace Communicator_ns
                         await key_exchange_queue.Writer.WriteAsync(SEND_TYPE.rcv_first);
                         break;
                     case (int)JsonController.MSG_TYPE.enter:
-                        if (json_controller.ParseBodyFromJson(message) != nickname && handshake_state_machine.MyState == HandshakeStateMachine.STATE.idle)
+                        if (handshake_state_machine.MyState == HandshakeStateMachine.STATE.idle)
                         {
+                            byte[] enter_key = new byte[32];
+                            Array.Copy(ratchet.AccessData("server").session_key, 0, enter_key, 0, 32);
+                            byte[] enter_decrypted_body = Decrypt(
+                                enter_key,
+                                Convert.FromBase64String(json_controller.ParseIVFromJson(message)),
+                                Convert.FromBase64String(json_controller.ParseBodyFromJson(message))
+                                );
+                            string enter_msg_body = Encoding.UTF8.GetString(enter_decrypted_body);
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.WriteLine("[alert]" + enter_msg_body + " entered");
+                            Console.ResetColor();
                             await state_semaphore.WaitAsync(token);
                             try
                             {
-                                //Console.WriteLine("I should talk to " + json_controller.ParseBodyFromJson(message));
-                                handshake_state_machine.CurrentHandShaker = json_controller.ParseBodyFromJson(message);
-                                //Console.WriteLine("current handshaker is " + handshake_state_machine.CurrentHandShaker);
+                                handshake_state_machine.CurrentHandShaker = enter_msg_body;
                                 handshake_state_machine.SetMyState_ToSendDH();
                             }
                             finally { state_semaphore.Release(); }
@@ -168,8 +178,24 @@ namespace Communicator_ns
                         }
                             break;
                     case (int)JsonController.MSG_TYPE.leave:
-                        ratchet.RemoveData(json_controller.ParseBodyFromJson(message));
-                        Console.WriteLine(json_controller.ParseBodyFromJson(message) + " leaved");
+                        byte[] leave_current_key = new byte[32];
+                        Array.Copy(ratchet.AccessData("server").session_key, 0, leave_current_key, 0, 32);
+                        byte[] leave_decrypted_body = Decrypt(
+                            leave_current_key,
+                            Convert.FromBase64String(json_controller.ParseIVFromJson(message)),
+                            Convert.FromBase64String(json_controller.ParseBodyFromJson(message))
+                            );
+
+                        string exit_msg_body = Encoding.UTF8.GetString(leave_decrypted_body);
+                        await ratchet_semaphore.WaitAsync(token);
+                        try
+                        {
+                            ratchet.RemoveData(exit_msg_body);
+                        }
+                        finally { ratchet_semaphore.Release(); }
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine("[alert]" + exit_msg_body + " leaved");
+                        Console.ResetColor();
                         break;
                 }
 
@@ -253,6 +279,9 @@ namespace Communicator_ns
                 }
                 else
                 {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine(nickname + " : " + line);
+                    Console.ResetColor();
                     using (RandomNumberGenerator r = RandomNumberGenerator.Create()){
                         byte[] ivec = new byte[16];
                         r.GetBytes(ivec);
@@ -265,7 +294,7 @@ namespace Communicator_ns
                             Convert.ToBase64String(Encrypt(ratchet.MySenderKey, ivec, Encoding.UTF8.GetBytes(line))), 
                             Convert.ToBase64String(ivec)
                             );
-                        Console.WriteLine("[log]sent \n" + line);
+                        Console.WriteLine("[log]sent system to :" + line);
                         await sock_semaphore.WaitAsync(token);
                         try
                         {
@@ -301,7 +330,7 @@ namespace Communicator_ns
                         finally { state_semaphore.Release(); }
                         while (handshake_state_machine.MyState != HandshakeStateMachine.STATE.rcved_dh)
                         {
-                            Console.WriteLine("[log]waiting for handshake 답장");
+                            Console.WriteLine("[log]waiting for handshake response");
                             await sock_semaphore.WaitAsync(token);
                             try
                             {
@@ -310,7 +339,7 @@ namespace Communicator_ns
                             finally { sock_semaphore.Release(); }
                             await Task.Delay(100, token);
                         }
-                        Console.WriteLine("handshaker sended " + message);
+                        Console.WriteLine("[log]handshaker sent :" + message);
                         string current_handshaker = handshake_state_machine.CurrentHandShaker;
                         await state_semaphore.WaitAsync(token);
                         try
@@ -347,7 +376,7 @@ namespace Communicator_ns
                             await sock.SendAsync(new ArraySegment<byte>(MakeBytesFormat(message)), SocketFlags.None);
                         }
                         finally { sock_semaphore.Release(); }
-                        Console.WriteLine("[log]handshaker sended \n" + message);
+                        Console.WriteLine("[log]handshaker sent :" + message);
                     }
                 }
                 else
@@ -423,7 +452,7 @@ namespace Communicator_ns
                         finally { ratchet_semaphore.Release(); }
 
                     }
-                    Console.WriteLine("[log]ratchet sended \n" + message);
+                    Console.WriteLine("[log]ratchet sent :" + message);
 
                 }
 

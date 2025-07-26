@@ -36,8 +36,8 @@ namespace ClientRunner_ns
             Task send_senderkey = sender.LoopSenderAsync(token);
             Console.WriteLine("[log]Loop Sender Async task built");
 
-            await Task.WhenAny(recieve, send_input, send_handshake, send_senderkey);
-            cts.Cancel();
+            await Task.WhenAny(recieve, send_input, send_handshake, send_senderkey); //if one of these functions finish the task...
+            cts.Cancel();//syncronize the finish
 
             await Task.WhenAll(recieve, send_input, send_handshake, send_senderkey);
             server_connector.CloseSockAsync();

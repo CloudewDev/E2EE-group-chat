@@ -22,14 +22,14 @@ namespace Ratchet_ns
         }
         private byte[] my_sender_key = new byte[32];
         public byte[] MySenderKey { get { return my_sender_key; } }
-		public int UpdateSessionKey(string who)
+		public int UpdateSessionKey(string who) // this is ratchet. update session key by current root key
 		{
             KEYS temp = whoNkey_dic[who];
             byte[] root_key = new byte[32];
             Array.Copy(temp.session_key, 0, root_key, 32, 32);
             temp.session_key = HKDF.DeriveKey(HashAlgorithmName.SHA256, root_key, 64);
 
-            if (++temp.count == 3)
+            if (++temp.count == 3) // I tried to make activate the second ratchet when this ratchet worked 3 times
             {
                 temp.count = 0;
                 whoNkey_dic[who] = temp;
@@ -67,7 +67,7 @@ namespace Ratchet_ns
         }
         public void SetMyState_ToIdle()
         {
-            current_exchanger = null;
+            current_exchanger = null; //initialize
             my_state = STATE.idle;
             Console.WriteLine("[log]ratchet state changed as idle");
         }

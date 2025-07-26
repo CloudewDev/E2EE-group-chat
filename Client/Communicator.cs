@@ -17,16 +17,18 @@ namespace Communicator_ns
     public class Communicator
     {
         protected readonly ServerConnector_ns.ServerConnector server_connector;
-        protected readonly HandshakeStateMachine_ns.HandshakeStateMachine handshake_state_machine;
+        protected readonly HandshakeStateMachine_ns.HandshakeStateMachine handshake_state_machine; // must controlled with semaphore since this is shared resource
         protected readonly JsonController_ns.JsonController json_controller;
-        protected readonly Ratchet_ns.Ratchet ratchet;
+        protected readonly Ratchet_ns.Ratchet ratchet; // must controlled with semaphore since this is shared resource
         protected readonly Socket sock;
         protected readonly string nickname;
         protected readonly SemaphoreSlim state_semaphore;
         protected readonly SemaphoreSlim ratchet_semaphore;
-        public enum SEND_TYPE { rcv_first, send_first }
         protected Channel<SEND_TYPE> dh_exchange_queue;
         protected Channel<SEND_TYPE> key_exchange_queue;
+        //dependancy injections
+
+        public enum SEND_TYPE { rcv_first, send_first }
         public Communicator(ServerConnector sc,
             HandshakeStateMachine hs,
             JsonController jp,
@@ -70,30 +72,29 @@ namespace Communicator_ns
             {
                 string message = await RecieveAsync(token);
                 Console.WriteLine("[log]recieved :" + message);
+
                 switch (json_controller.ParseTypeFromJson(message))
                 {
                     case (int)JsonController.MSG_TYPE.message:
                         Console.ForegroundColor = ConsoleColor.Green;
-                        await Task.Run(() =>
                         Console.WriteLine(
-                                    json_controller.ParseFromFromJson(message) 
-                                    + " : " 
+                                    json_controller.ParseFromFromJson(message) //nickname
+                                    + " : "
                                     + Encoding.UTF8.GetString(Decrypt(ratchet.AccessData(json_controller.ParseFromFromJson(message)).sender_key,
                                         Convert.FromBase64String(json_controller.ParseIVFromJson(message)),
-                                        Convert.FromBase64String(json_controller.ParseBodyFromJson(message)))
+                                        Convert.FromBase64String(json_controller.ParseBodyFromJson(message))) // decrypt and encode recieved message
                                      )
-                                )
                         );
                         Console.ResetColor();
                         break;
                     case (int)JsonController.MSG_TYPE.dh:
+                        //what did I recieved? response of handshake or handshake request?
                         if (handshake_state_machine.MyState == HandshakeStateMachine.STATE.waiting_for_rcv_dh)
                         {
+                            //which means I was waiting for response of handshake
+                            //check if current message is from current handshaker
                             if (json_controller.ParseFromFromJson(message) == handshake_state_machine.CurrentHandShaker)
                             {
-                                //Console.WriteLine("recieved answer of key exchange");
-                                //byte[] shared_secret_bytes = handshake_state_machine.SharedSecretAsByte;
-                                //Console.WriteLine("I recieved opponent's number. shared secret is " + Convert.ToBase64String(shared_secret_bytes));
                                 handshake_state_machine.OpponentBigNum = json_controller.ParseBodyFromJson(message);
                                 await state_semaphore.WaitAsync(token);
                                 try
@@ -109,7 +110,7 @@ namespace Communicator_ns
                         }
                         else if (handshake_state_machine.MyState == HandshakeStateMachine.STATE.idle)
                         {
-                            //Console.WriteLine("recieved request for me to handshake with opponent");
+                            //which means I suddenly recieved handshake request
                             handshake_state_machine.OpponentBigNum = json_controller.ParseBodyFromJson(message);
                             await state_semaphore.WaitAsync(token);
                             try
@@ -118,25 +119,21 @@ namespace Communicator_ns
                                 handshake_state_machine.SetMyState_ToSendDH();
                             }
                             finally { state_semaphore.Release(); }
-                            await dh_exchange_queue.Writer.WriteAsync(SEND_TYPE.rcv_first);
+                            await dh_exchange_queue.Writer.WriteAsync(SEND_TYPE.rcv_first); // wake up the DH handshake sender
                         }
-                        else
-                        {
-                            Console.WriteLine("[log]ignore current message");
-                        }
-                            break;
+                        break;
                     case (int)JsonController.MSG_TYPE.sender_key:
-
+                        //sender key is encrypted by session key. so I need to decrypt first.
                         await ratchet_semaphore.WaitAsync(token);
                         try
                         {
                             ratchet.CurrentExchanger = json_controller.ParseFromFromJson(message);
-                            ratchet.SetOpponentSenderKey
+                            ratchet.SetOpponentSenderKey // this function automatically decyrpt the input and set the opponent's sender key
                                 (
                                 Convert.FromBase64String(json_controller.ParseIVFromJson(message)),
                                 Convert.FromBase64String(json_controller.ParseBodyFromJson(message))
                                 );
-                            if (ratchet.MyState == Ratchet.STATE.waiting_for_rcv_key)
+                            if (ratchet.MyState == Ratchet.STATE.waiting_for_rcv_key) // check if this sender key is as response of my sender key or not
                             {
                                 ratchet.SetMyState_ToRcvedKey();
                             }
@@ -146,23 +143,29 @@ namespace Communicator_ns
                             }
 
                         }
-                        finally {  ratchet_semaphore.Release(); }
-                        await key_exchange_queue.Writer.WriteAsync(SEND_TYPE.rcv_first);
+                        finally { ratchet_semaphore.Release(); }
+                        await key_exchange_queue.Writer.WriteAsync(SEND_TYPE.rcv_first); //wake up the sender key handshake sender
                         break;
                     case (int)JsonController.MSG_TYPE.enter:
-                        if (handshake_state_machine.MyState == HandshakeStateMachine.STATE.idle)
+                        //someone entered. I must DH handshake to this new user.
+                        if (handshake_state_machine.MyState == HandshakeStateMachine.STATE.idle) // but not when I'm handshaking.
                         {
+                            //session key is 64byte and first 32 bytes are proper key (other 32 bytes are root key)
                             byte[] enter_key = new byte[32];
-                            Array.Copy(ratchet.AccessData("server").session_key, 0, enter_key, 0, 32);
+                            Array.Copy(ratchet.AccessData("server").session_key, 0, enter_key, 0, 32); 
+                            //this type of message is only from server. so check server's session key
+                            
                             byte[] enter_decrypted_body = Decrypt(
                                 enter_key,
                                 Convert.FromBase64String(json_controller.ParseIVFromJson(message)),
                                 Convert.FromBase64String(json_controller.ParseBodyFromJson(message))
                                 );
                             string enter_msg_body = Encoding.UTF8.GetString(enter_decrypted_body);
+                            
                             Console.ForegroundColor = ConsoleColor.Green;
                             Console.WriteLine("[alert]" + enter_msg_body + " entered");
                             Console.ResetColor();
+                            
                             await state_semaphore.WaitAsync(token);
                             try
                             {
@@ -176,8 +179,9 @@ namespace Communicator_ns
                         {
                             Console.WriteLine("[log]ignore current message");
                         }
-                            break;
+                        break;
                     case (int)JsonController.MSG_TYPE.leave:
+                        //similar to the process of someone's enter
                         byte[] leave_current_key = new byte[32];
                         Array.Copy(ratchet.AccessData("server").session_key, 0, leave_current_key, 0, 32);
                         byte[] leave_decrypted_body = Decrypt(
@@ -209,6 +213,8 @@ namespace Communicator_ns
             await ReadNBytesAsync(4, msg_size_data, token);
             Array.Reverse(msg_size_data);
             int msg_size = BitConverter.ToInt32(msg_size_data, 0);
+            //first 4 bytes mean the size of a message. so read those first.
+
             byte[] message_byte = new byte[msg_size];
             await ReadNBytesAsync(msg_size, message_byte, token); // ReadNBytesAsync function already has exception handling
             message = Encoding.UTF8.GetString(message_byte, 0, msg_size);
@@ -218,7 +224,7 @@ namespace Communicator_ns
         {
             int currentRead = 0;
             int bytes_read = 0; ;
-            while (currentRead < n)
+            while (currentRead < n) // to accurately read n bytes
             {
                 bytes_read = await sock.ReceiveAsync(new ArraySegment<byte>(buffer, currentRead, n - currentRead), SocketFlags.None, token);
                 if (bytes_read <= 0)
@@ -254,20 +260,22 @@ namespace Communicator_ns
             SemaphoreSlim ss,
             SemaphoreSlim rs,
             Channel<SEND_TYPE> deq,
-            Channel<SEND_TYPE> keq) : base(sc, hs, jp, rc, nickname, ss, rs, deq, keq) 
+            Channel<SEND_TYPE> keq) : base(sc, hs, jp, rc, nickname, ss, rs, deq, keq)
         {
-            Channel<string> update_senderkey_queue = Channel.CreateUnbounded<string>();
-            Ratchet.KEYS temp = new Ratchet.KEYS();
+            Ratchet.KEYS temp = ratchet.MakeNewKey();
             temp.sender_key = ratchet.MySenderKey;
             ratchet.AddData(nickname, temp);
         }
+        //build my sender key. this is kind of initialize but not neccessary to do here. just whenever before communicate with other user.
 
         public async Task Init()
         {
             await dh_exchange_queue.Writer.WriteAsync(SEND_TYPE.send_first);
         }
+        // since I must handshake with server first, set the initial state for start handshake with server.
+
         private readonly SemaphoreSlim sock_semaphore = new SemaphoreSlim(1, 1);
-        public async Task LoopInputAsync(CancellationToken token)
+        public async Task LoopInputAsync(CancellationToken token) // this is function for user's I/O input
         {
             while (!token.IsCancellationRequested)
             {
@@ -275,23 +283,25 @@ namespace Communicator_ns
                 if (string.IsNullOrEmpty(line)) continue;
                 if (line == "/quit")
                 {
-                    break;
+                    break; //it changes the token which is input and make upper function avilable to syncronize other functions 
                 }
                 else
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine(nickname + " : " + line);
                     Console.ResetColor();
-                    using (RandomNumberGenerator r = RandomNumberGenerator.Create()){
+
+                    using (RandomNumberGenerator r = RandomNumberGenerator.Create())
+                    {
                         byte[] ivec = new byte[16];
                         r.GetBytes(ivec);
                         //sending message with my sender key encryption
                         line = json_controller.BuildJson
                             (
-                            JsonController.MSG_TYPE.message, 
-                            nickname, 
-                            "group", 
-                            Convert.ToBase64String(Encrypt(ratchet.MySenderKey, ivec, Encoding.UTF8.GetBytes(line))), 
+                            JsonController.MSG_TYPE.message,
+                            nickname,
+                            "group",
+                            Convert.ToBase64String(Encrypt(ratchet.MySenderKey, ivec, Encoding.UTF8.GetBytes(line))),
                             Convert.ToBase64String(ivec)
                             );
                         Console.WriteLine("[log]sent system to :" + line);
@@ -311,14 +321,12 @@ namespace Communicator_ns
         {
             while (!token.IsCancellationRequested)
             {
-                //Console.WriteLine("ready to read something");
-                SEND_TYPE send_type = await dh_exchange_queue.Reader.ReadAsync(token);
-                //Console.WriteLine("key exchange queue got something");
+                SEND_TYPE send_type = await dh_exchange_queue.Reader.ReadAsync(token); //blocking here
 
-                if (handshake_state_machine.MyState == HandshakeStateMachine.STATE.send_dh)
+                if (handshake_state_machine.MyState == HandshakeStateMachine.STATE.send_dh) // check if the state is proper or not first
                 {
                     string message;
-                    if (send_type == SEND_TYPE.send_first)
+                    if (send_type == SEND_TYPE.send_first) // it means I'm starting handshake
                     {
                         message = json_controller.BuildJson
                             (JsonController.MSG_TYPE.dh, nickname, handshake_state_machine.CurrentHandShaker, handshake_state_machine.MyBigNum, "");
@@ -328,7 +336,7 @@ namespace Communicator_ns
                             handshake_state_machine.SetMyState_ToWaitingForRcvDH();
                         }
                         finally { state_semaphore.Release(); }
-                        while (handshake_state_machine.MyState != HandshakeStateMachine.STATE.rcved_dh)
+                        while (handshake_state_machine.MyState != HandshakeStateMachine.STATE.rcved_dh) //repeat untill I get response
                         {
                             Console.WriteLine("[log]waiting for handshake response");
                             await sock_semaphore.WaitAsync(token);
@@ -340,13 +348,16 @@ namespace Communicator_ns
                             await Task.Delay(100, token);
                         }
                         Console.WriteLine("[log]handshaker sent :" + message);
+
                         string current_handshaker = handshake_state_machine.CurrentHandShaker;
+                        
                         await state_semaphore.WaitAsync(token);
                         try
                         {
                             handshake_state_machine.SetMyState_ToIdle();
                         }
                         finally { state_semaphore.Release(); }
+                        // if I dont have sender key of current handshaker, start sender key handshake
                         if (ratchet.AccessData(current_handshaker).sender_key == null && current_handshaker != "server")
                         {
                             await ratchet_semaphore.WaitAsync(token);
@@ -360,7 +371,7 @@ namespace Communicator_ns
 
                         }
                     }
-                    else
+                    else // it means I recieved handshake request and I'm answering
                     {
                         message = json_controller.BuildJson
                            (JsonController.MSG_TYPE.dh, nickname, handshake_state_machine.CurrentHandShaker, handshake_state_machine.MyBigNum, "");
@@ -387,7 +398,7 @@ namespace Communicator_ns
 
         }
 
-        public async Task LoopSenderAsync(CancellationToken token)
+        public async Task LoopSenderAsync(CancellationToken token) // similar to DH handshake function
         {
             while (!token.IsCancellationRequested)
             {
@@ -459,6 +470,7 @@ namespace Communicator_ns
             }
         }
 
+        //measure the size of current message and add 4 bytes front of the message which means size of the message
         private byte[] MakeBytesFormat(string input)
         {
             byte[] buffer = Encoding.UTF8.GetBytes(input);

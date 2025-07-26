@@ -5,8 +5,8 @@ using System.Security.Cryptography;
 namespace DHShare_ns
 {
 
-	public class DHShare
-	{
+    public class DHShare
+    {
         private BigInteger prime = BigInteger.Parse("32317006071311007300714876688669951960444102669715484032" +
             "13034542752465512312101900047437800025814583420617177669147303598253490428" +
             "75546873115956286388235378759375195778185778053217122993532058804720734560" +
@@ -34,13 +34,13 @@ namespace DHShare_ns
         {
             byte[] bytes = prime.ToByteArray();
             BigInteger R;
-            using RandomNumberGenerator r = RandomNumberGenerator.Create();
+            using RandomNumberGenerator r = RandomNumberGenerator.Create(); 
             do
             {
                 r.GetBytes(bytes);
                 bytes[bytes.Length - 1] &= (byte)0x7F; //force sign bit to positive
                 R = new BigInteger(bytes);
-            } while (R > prime - 1);
+            } while (R > prime - 1); // make random byte untill the number matches the range
             return R;
         }
     }

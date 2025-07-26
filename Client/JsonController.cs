@@ -22,10 +22,10 @@ namespace JsonController_ns
         public string? IVec { get; set; }
     }
     public class JsonController
-    {	
-		public enum MSG_TYPE {message, dh, sender_key, enter, leave}
-		public string BuildJson(MSG_TYPE type, string from, string to, string body, string? iv) 
-		{
+    {
+        public enum MSG_TYPE { message, dh, sender_key, enter, leave }
+        public string BuildJson(MSG_TYPE type, string from, string to, string body, string? iv)
+        {
             JsonData json_to_send = new JsonData
             {
                 Type = (int)type,
@@ -34,8 +34,8 @@ namespace JsonController_ns
                 Body = body,
                 IVec = iv
             };
-			string data_to_send = JsonSerializer.Serialize(json_to_send);
-			return data_to_send;
+            string data_to_send = JsonSerializer.Serialize(json_to_send);
+            return data_to_send;
 
         }
 
@@ -60,7 +60,7 @@ namespace JsonController_ns
             return to;
         }
         public string ParseBodyFromJson(string input)
-		{
+        {
             JsonData parsed = JsonSerializer.Deserialize<JsonData>(input);
             string body = parsed.Body;
             return body;
